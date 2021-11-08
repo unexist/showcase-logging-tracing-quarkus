@@ -13,3 +13,4 @@ This project holds a showcase for various kafka related things.
 
 - https://quarkus.io/guides/kafka-dev-services
 - https://quarkus.io/guides/centralized-log-management#send-logs-to-fluentd-efk
+- https://quarkus.io/guides/opentracing
