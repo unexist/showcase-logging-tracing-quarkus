@@ -1,0 +1,15 @@
+= Showcase for observability on quarkus
+
+This project holds a showcase for various kafka related things.
+
+== Tools
+
+- https://vectorized.io/redpanda/
+- https://www.elastic.co/kibana/
+- https://www.elastic.co/elastic-stack/
+- https://www.jaegertracing.io/
+
+== Links
+
+- https://quarkus.io/guides/kafka-dev-services
+- https://quarkus.io/guides/centralized-log-management#send-logs-to-fluentd-efk

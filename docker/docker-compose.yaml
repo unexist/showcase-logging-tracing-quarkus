@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+
+  # Install jaeger
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
+
+  # Install elastic
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.2
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+
+  # Install fluentd
+  fluentd:
+    build: .
+    ports:
+      - "12201:12201/udp"
+    volumes:
+      - source: ./fluentd
+        target: /fluentd/etc
+        type: bind
+    depends_on:
+      - elasticsearch
+
+  # Kibana
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:6.8.2
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+
+  # Install redpanda
+  redpanda:
+    container_name: redpanda
+    image: vectorized/redpanda
+    hostname: redpanda
+    ports:
+      - "9092:9092"
