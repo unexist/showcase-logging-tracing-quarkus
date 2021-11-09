@@ -59,10 +59,10 @@ list:
 	@curl -X 'GET' 'http://localhost:8080/todo' -H 'accept: */*' | jq .
 
 open:
-	@open "http://localhost:8081"
+	@open "http://localhost:8080"
 
 kat-listen:
-	kafkacat -t todo_created -b localhost:9092 -C
+	kcat -t todo_created -b localhost:9092 -C
 
 kat-test:
-	kafkacat -t todo_created -b localhost:9092 -P
+	kcat -t todo_created -b localhost:9092 -P
