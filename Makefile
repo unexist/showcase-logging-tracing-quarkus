@@ -1,6 +1,6 @@
-define JSON_TODO_DIRECT
+define JSON_TODO
 curl -X 'POST' \
-  'http://localhost:8080/todo/direct' \
+  'http://localhost:8080/todo' \
   -H 'accept: */*' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -13,24 +13,7 @@ curl -X 'POST' \
   "title": "string"
 }'
 endef
-export JSON_TODO_DIRECT
-
-define JSON_TODO_INDIRECT
-curl -X 'POST' \
-  'http://localhost:8080/todo/indirect' \
-  -H 'accept: */*' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "description": "string",
-  "done": true,
-  "dueDate": {
-    "due": "2021-05-07",
-    "start": "2021-05-07"
-  },
-  "title": "string"
-}'
-endef
-export JSON_TODO_INDIRECT
+export JSON_TODO
 
 # Docker
 .PHONY: docker
@@ -48,19 +31,21 @@ elastic:
 jaeger:
 	open http://localhost:16686/
 
-# Tools
-todo-direct:
-	@echo $$JSON_TODO_DIRECT | bash
+# Quarkus
+service-create:
+	mvn -f todo-service-create/pom.xml quarkus:dev
 
-todo-indirect:
-	@echo $$JSON_TODO_INDIRECT | bash
+service-check:
+	mvn -f todo-service-check/pom.xml quarkus:dev
+
+# Tools
+todo:
+	@echo $$JSON_TODO | bash
 
 list:
 	@curl -X 'GET' 'http://localhost:8080/todo' -H 'accept: */*' | jq .
 
-open:
-	@open "http://localhost:8080"
-
+# Kafka
 kat-listen:
 	kcat -t todo_created -b localhost:9092 -C
 
