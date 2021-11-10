@@ -11,6 +11,8 @@
 
 package dev.unexist.showcase.todo.domain.todo;
 
+import org.eclipse.microprofile.opentracing.Traced;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.List;
@@ -30,6 +32,7 @@ public class TodoService {
      * @return Either id of the entry on success; otherwise {@code -1}
      **/
 
+    @Traced
     public int create(TodoBase base) {
         Todo todo = new Todo(base);
 
