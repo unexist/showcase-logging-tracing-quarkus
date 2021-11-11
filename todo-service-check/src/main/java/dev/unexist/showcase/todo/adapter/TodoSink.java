@@ -14,12 +14,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.unexist.showcase.todo.domain.todo.TodoBase;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
+import dev.unexist.showcase.todo.infrastructure.interceptor.TracedEventListener;
+import io.smallrye.reactive.messaging.kafka.IncomingKafkaRecord;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.concurrent.CompletionStage;
 
 @ApplicationScoped
 public class TodoSink {
@@ -30,19 +33,25 @@ public class TodoSink {
     @Inject
     TodoService todoService;
 
-    @Incoming("todo-sink")
-    public void consumeTodos(String json) {
-        TodoBase todo = null;
+    /**
+     * Receive {@link TodoBase} from Kafka
+     *
+     * @param  record  A {@link IncomingKafkaRecord} to handle
+     **/
+
+    @TracedEventListener
+    @Incoming("todo-created")
+    public CompletionStage<Void> consumeTodos(IncomingKafkaRecord<Integer, String> record) {
+        LOGGER.info("Received message from todo-created");
 
         try {
-            todo = this.mapper.readValue(json, TodoBase.class);
-
-            LOGGER.info("Received todo with payload {}", json);
+            todoService.check(this.mapper.readValue(record.getPayload(), TodoBase.class));
+            LOGGER.info("Received todo with payload {}", record.getPayload());
         } catch (JsonProcessingException e) {
             LOGGER.error("Error reading JSON", e);
         }
 
-        todoService.create(todo);
+        return record.ack();
     }
 }
 

@@ -1,9 +1,8 @@
 package dev.unexist.showcase.todo.application;
 
-import dev.unexist.showcase.todo.domain.todo.TodoService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.reactive.messaging.connectors.InMemoryConnector;
-import io.smallrye.reactive.messaging.connectors.InMemorySource;
+import io.smallrye.reactive.messaging.connectors.InMemorySink;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -11,21 +10,16 @@ import org.junit.jupiter.api.Test;
 import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 
-@QuarkusTest
-public class TodoSinkTest {
-    public static final String TODO_AS_JSON = "{\"description\": \"string\", \"done\": true, "
-        + "\"dueDate\": { \"due\": \"2021-05-07\", \"start\": \"2021-05-07\" }, \"title\": \"string\" }";
+import static org.assertj.core.api.Assertions.assertThat;
 
+@QuarkusTest
+public class TodoSourceTest {
     @Inject @Any
     InMemoryConnector connector;
-
-    @Inject
-    TodoService todoService;
 
     @BeforeAll
     public static void switchChannels() {
         InMemoryConnector.switchOutgoingChannelsToInMemory("todo-checked");
-        InMemoryConnector.switchIncomingChannelsToInMemory("todo-created");
     }
 
     @AfterAll
@@ -34,9 +28,9 @@ public class TodoSinkTest {
     }
 
     @Test
-    void testSink() {
-        InMemorySource<String> todoSource = this.connector.source("todo-sink");
+    void testGenerator() {
+        InMemorySink<String> todoSink = this.connector.sink("todo-checked");
 
-        todoSource.send(TODO_AS_JSON);
+        assertThat(todoSink.received().size()).isEqualTo(1);
     }
 }

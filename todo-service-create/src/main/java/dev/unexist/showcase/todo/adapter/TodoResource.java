@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.unexist.showcase.todo.domain.todo.Todo;
 import dev.unexist.showcase.todo.domain.todo.TodoBase;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
+import dev.unexist.showcase.todo.infrastructure.tracing.TraceService;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -23,6 +24,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.eclipse.microprofile.opentracing.Traced;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.slf4j.Logger;
@@ -56,9 +58,13 @@ public class TodoResource {
     TodoService todoService;
 
     @Inject
+    TraceService traceService;
+
+    @Inject
     @Channel("todo-created")
     Emitter<String> emitter;
 
+    @Traced(operationName = "Create new todo")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -75,9 +81,11 @@ public class TodoResource {
         try {
             String json = this.mapper.writeValueAsString(base);
 
-            this.emitter.send(json);
+            LOGGER.info("Received todo with payload {}", json);
 
-            LOGGER.info("Created todo with payload {}", json);
+            this.emitter.send(this.traceService.createTracedRecord(1, json));
+
+            LOGGER.info("Sent message to todo-created");
 
             URI uri = uriInfo.getAbsolutePathBuilder()
                     .path(Integer.toString(-1))
