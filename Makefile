@@ -22,13 +22,13 @@ docker:
 		-p observability up
 
 # Web
-kibana:
+open-kibana:
 	open http://localhost:5601
 
-elastic:
+open-elastic:
 	open http://localhost:9200
 
-jaeger:
+open-jaeger:
 	open http://localhost:16686/
 
 # Quarkus
