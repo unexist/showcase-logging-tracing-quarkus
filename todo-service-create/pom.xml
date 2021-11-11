@@ -14,7 +14,6 @@
     </parent>
 
     <properties>
-        <smallrye-reactive.version>3.8.0</smallrye-reactive.version>
         <opentracing-kafka-client.version>0.1.15</opentracing-kafka-client.version>
     </properties>
 
@@ -48,7 +47,6 @@
         <dependency>
             <groupId>io.smallrye.reactive</groupId>
             <artifactId>smallrye-reactive-messaging-in-memory</artifactId>
-            <version>${smallrye-reactive.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
