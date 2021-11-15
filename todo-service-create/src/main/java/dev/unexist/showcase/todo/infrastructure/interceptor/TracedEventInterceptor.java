@@ -10,11 +10,14 @@
 
 package dev.unexist.showcase.todo.infrastructure.interceptor;
 
+import dev.unexist.showcase.todo.infrastructure.tracing.TraceService;
+import io.opentracing.Scope;
+import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
-import io.opentracing.contrib.interceptors.OpenTracingInterceptor;
 import io.opentracing.contrib.kafka.TracingKafkaUtils;
 import io.smallrye.reactive.messaging.kafka.IncomingKafkaRecord;
+import io.smallrye.reactive.messaging.kafka.OutgoingKafkaRecord;
 import org.apache.kafka.common.header.Headers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +32,8 @@ import javax.interceptor.InvocationContext;
 @Interceptor
 @Priority(Interceptor.Priority.LIBRARY_BEFORE)
 public class TracedEventInterceptor {
+    private static final String PREFIX_EVENT_LISTENER = "EventListener_";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(TracedEventInterceptor.class);
 
     @Inject
@@ -36,21 +41,41 @@ public class TracedEventInterceptor {
 
     @AroundInvoke
     public Object wrap(InvocationContext context) throws Exception {
-        for (int i = 0; i < context.getParameters().length; i++) {
-            Object parameter = context.getParameters()[i];
+        Object result = null;
+        Object parameter = context.getParameters()[0];
 
-            LOGGER.info("instance={}", parameter.getClass());
+        LOGGER.info("instance={}", parameter.getClass());
 
-            if (parameter instanceof IncomingKafkaRecord) {
-                IncomingKafkaRecord<?, ?> record = (IncomingKafkaRecord<?, ?>) parameter;
-                Headers headers = record.getHeaders();
-                SpanContext spanContext = TracingKafkaUtils
-                        .extractSpanContext(headers, tracer);
+        if (parameter instanceof IncomingKafkaRecord) {
+            IncomingKafkaRecord<?, ?> record = (IncomingKafkaRecord<?, ?>) parameter;
+            Headers headers = record.getHeaders();
+            SpanContext parentContext = TracingKafkaUtils
+                    .extractSpanContext(headers, tracer);
 
-                context.getContextData().put(OpenTracingInterceptor.SPAN_CONTEXT, spanContext);
+            Span span = tracer
+                    .buildSpan(PREFIX_EVENT_LISTENER + context.getMethod().getName())
+                    .asChildOf(parentContext)
+                    .start();
+
+            try (Scope scope = tracer.activateSpan(span)) {
+                result = context.proceed();
+
+                if (result instanceof OutgoingKafkaRecord) {
+                    OutgoingKafkaRecord<?, ?> outgoingKafkaRecord =
+                            (OutgoingKafkaRecord<?, ?>) result;
+
+                    // Inject the default header ("uber-trace-id") that is used for extracting
+                    // the span context on consumer side.
+                    result = outgoingKafkaRecord
+                            .withHeader(TraceService.JAEGER_PROPAGATION_HEADER,
+                                    span.context().toString());
+                }
             }
+        } else {
+            result = context.proceed();
         }
 
-        return context.proceed();
+
+        return result;
     }
 }

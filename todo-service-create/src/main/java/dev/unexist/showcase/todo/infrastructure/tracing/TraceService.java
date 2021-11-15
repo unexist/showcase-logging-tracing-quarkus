@@ -27,7 +27,7 @@ import javax.inject.Inject;
 public class TraceService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TraceService.class);
 
-    private static final String JAEGER_PROPAGATION_HEADER = "uber-trace-id";
+    public static final String JAEGER_PROPAGATION_HEADER = "uber-trace-id";
 
     @Inject
     Tracer tracer;
@@ -41,16 +41,16 @@ public class TraceService {
         OutgoingKafkaRecord<K, P> outgoingRecord = OutgoingKafkaRecord
                 .from(outMessage);
 
-        JaegerSpanContext spanCtx = ((JaegerSpan)this.tracer.activeSpan()).context();
+        JaegerSpanContext spanContext = ((JaegerSpan)this.tracer.activeSpan()).context();
 
         // uber-trace-id format: {trace-id}:{span-id}:{parent-span-id}:{flags}
         // See https://www.jaegertracing.io/docs/1.28/client-libraries/#tracespan-identity
-        String uberTraceId = String.format("%s:%s:%s:%s", spanCtx.getTraceId(),
-                Long.toHexString(spanCtx.getSpanId()), Long.toHexString(spanCtx.getParentId()),
-                Integer.toHexString(spanCtx.getFlags()));
+        /*String uberTraceId = String.format("%s:%s:%s:%s", spanContext.getTraceId(),
+                Long.toHexString(spanContext.getSpanId()), Long.toHexString(spanContext.getParentId()),
+                Integer.toHexString(spanContext.getFlags()));*/
 
-        LOGGER.info("uber-trace-id={}", uberTraceId);
+        LOGGER.info("uber-trace-id={}", spanContext.toString());
 
-        return outgoingRecord.withHeader(JAEGER_PROPAGATION_HEADER, uberTraceId.getBytes());
+        return outgoingRecord.withHeader(JAEGER_PROPAGATION_HEADER, spanContext.toString());
     }
 }
