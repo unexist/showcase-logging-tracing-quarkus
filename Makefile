@@ -16,9 +16,16 @@ endef
 export JSON_TODO
 
 # Docker
-.PHONY: docker
-docker:
+docker-compose:
 	@docker-compose -f docker/docker-compose.yaml \
+		-p observability up
+
+# Podman
+podman-start:
+	@podman machine start
+
+podman-compose:
+	@podman-compose -f docker/docker-compose.yaml \
 		-p observability up
 
 # Web
