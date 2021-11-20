@@ -21,12 +21,84 @@ docker-compose:
 		-p observability up
 
 # Podman
-podman-start:
-	@podman machine start
+PODNAME := observ
+
+podman-machine-create:
+	@podman machine init --memory=8192 --cpus=2
+
+podman-machine-rm:
+	@podman machine rm
+
+podman-machine-create: podman-machine-rm podman-machine-create
+
+podman-pod-create:
+	@podman pod create -n $(PODNAME) --share net -p 6831:6831/udp -p 16686:16686 \
+		-p 9200:9200 -p 9300:9300 -p 12201:12201/udp -p 5601:5601 -p 9092:9092
+
+podman-pod-rm:
+	@podman pod rm -f $(PODNAME)
+
+podman-pod-recreate: podman-pod-rm podman-pod-create
 
 podman-compose:
-	@podman-compose -f docker/docker-compose.yaml \
-		-p observability up
+	@podman-compose -f docker/docker-compose.yaml -p observability up
+
+podman-build:
+	@podman build --format docker -t fluent .
+
+podman-jaeger:
+	# Install jaeger
+	#jaeger:
+	#  image: jaegertracing/all-in-one:latest
+	#  ports:
+	#    - "6831:6831/udp"
+	#    - "16686:16686"
+
+	@podman run -it --name jaeger --pod=$(PODNAME) jaegertracing/all-in-one:latest
+
+podman-elastic:
+	# Install elastic
+	#elasticsearch:
+	#  image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.2
+	#  ports:
+	#    - "9200:9200"
+	#    - "9300:9300"
+	#  environment:
+	#    ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+
+	@podman run -it --name elastic --pod=$(PODNAME) -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
+		-e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+
+podman-fluent:
+	# Install fluentd
+	#fluentd:
+	#build: .
+	#ports:
+	#  - "12201:12201/udp"
+	#volumes:
+	#  - source: ./fluentd
+	#    target: /fluentd/etc
+	#    type: bind
+	#depends_on:
+	#  - elasticsearch
+
+podman-kibana:
+	# Kibana
+	#kibana:
+	#  image: docker.elastic.co/kibana/kibana-oss:6.8.2
+	#  ports:
+	#    - "5601:5601"
+	#  depends_on:
+	#    - elasticsearch
+
+podman-redpanda:
+	# Install redpanda
+	#redpanda:
+	#  container_name: redpanda
+	#  image: vectorized/redpanda
+	#  hostname: redpanda
+	#  ports:
+	#    - "9092:9092"
 
 # Web
 open-kibana:
