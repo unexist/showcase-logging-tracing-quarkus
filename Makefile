@@ -43,9 +43,6 @@ podman-pod-recreate: podman-pod-rm podman-pod-create
 podman-compose:
 	@podman-compose -f docker/docker-compose.yaml -p observability up
 
-podman-build:
-	@podman build --format docker -t fluent .
-
 podman-jaeger:
 	# Install jaeger
 	#jaeger:
@@ -68,6 +65,9 @@ podman-elastic:
 
 	@podman run -it --name elastic --pod=$(PODNAME) -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
 		-e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+
+podman-fluent-build:
+	@podman build --format docker -t fluent .
 
 podman-fluent:
 	# Install fluentd
