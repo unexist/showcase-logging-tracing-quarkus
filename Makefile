@@ -51,7 +51,7 @@ podman-jaeger:
 	#    - "6831:6831/udp"
 	#    - "16686:16686"
 
-	@podman run -it --name jaeger --pod=$(PODNAME) jaegertracing/all-in-one:latest
+	@podman run -dit --name jaeger --pod=$(PODNAME) jaegertracing/all-in-one:latest
 
 podman-elastic:
 	# Install elastic
@@ -63,7 +63,7 @@ podman-elastic:
 	#  environment:
 	#    ES_JAVA_OPTS: "-Xms512m -Xmx512m"
 
-	@podman run -it --name elastic --pod=$(PODNAME) -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
+	@podman run -dit --name elasticsearch --pod=$(PODNAME) -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
 		-e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
 
 podman-fluent-build:
@@ -82,7 +82,7 @@ podman-fluent:
 	#depends_on:
 	#  - elasticsearch
 
-	@podman run -it --name fluent --pod=$(PODNAME) -v docker/fluent:/fluentd/etc:Z fluent
+	@podman run -dit --name fluent --pod=$(PODNAME) -v docker/fluent:/fluentd/etc:Z fluent
 
 podman-kibana:
 	# Kibana
@@ -93,7 +93,8 @@ podman-kibana:
 	#  depends_on:
 	#    - elasticsearch
 
-	@podman run -dit --name kibana --pod=$(PODNAME) docker.elastic.co/kibana/kibana-oss:6.8.2
+	@podman run -dit --name kibana --pod=$(PODNAME) -e "ELASTICSEARCH_HOSTS=http://localhost:9200" \
+		docker.elastic.co/kibana/kibana-oss:7.10.2
 
 podman-redpanda:
 	# Install redpanda
