@@ -82,7 +82,7 @@ podman-fluent:
 	#depends_on:
 	#  - elasticsearch
 
-	@podman run -dit --name fluent --pod=$(PODNAME) -v docker/fluent:/fluentd/etc:Z fluent
+	@podman run -dit --name fluent --pod=$(PODNAME) fluent
 
 podman-kibana:
 	# Kibana
