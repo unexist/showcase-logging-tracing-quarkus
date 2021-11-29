@@ -32,7 +32,7 @@ podman-machine-rm:
 podman-machine-create: podman-machine-rm podman-machine-create
 
 podman-pod-create:
-	@podman pod create -n $(PODNAME) --share net -p 6831:6831/udp -p 16686:16686 \
+	@podman pod create -n $(PODNAME) --network bridge -p 6831:6831/udp -p 16686:16686 \
 		-p 9200:9200 -p 9300:9300 -p 12201:12201/udp -p 5601:5601 -p 9092:9092
 
 podman-pod-rm:
@@ -82,6 +82,8 @@ podman-fluent:
 	#depends_on:
 	#  - elasticsearch
 
+	@podman run -it --name fluent --pod=$(PODNAME) -v docker/fluent:/fluentd/etc:Z fluent
+
 podman-kibana:
 	# Kibana
 	#kibana:
@@ -91,6 +93,8 @@ podman-kibana:
 	#  depends_on:
 	#    - elasticsearch
 
+	@podman run -dit --name kibana --pod=$(PODNAME) docker.elastic.co/kibana/kibana-oss:6.8.2
+
 podman-redpanda:
 	# Install redpanda
 	#redpanda:
@@ -99,6 +103,8 @@ podman-redpanda:
 	#  hostname: redpanda
 	#  ports:
 	#    - "9092:9092"
+
+	@podman run -dit --name redpanda --pod=$(PODNAME) vectorized/redpanda
 
 # Web
 open-kibana:
