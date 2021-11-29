@@ -1,0 +1,10 @@
+FROM fluent/fluentd:v1.14-debian-1
+
+USER root
+
+COPY ./fluentd/fluent.conf /fluent/etc/fluent.con
+
+RUN ["gem", "install", "fluent-plugin-elasticsearch"]
+RUN ["gem", "install", "fluent-plugin-input-gelf"]
+
+USER fluent
