@@ -67,7 +67,7 @@ podman-elastic:
 		-e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
 
 podman-fluent-build:
-	@podman build --format docker -t fluent .
+	@podman build --format docker -t fluent -f podman/Dockerfile
 
 podman-fluent:
 	# Install fluentd
