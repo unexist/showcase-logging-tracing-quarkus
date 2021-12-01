@@ -64,7 +64,7 @@ podman-elastic:
 	#    ES_JAVA_OPTS: "-Xms512m -Xmx512m"
 
 	@podman run -dit --name elasticsearch --pod=$(PODNAME) -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
-		-e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+		-e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.14.2
 
 podman-fluent-build:
 	@podman build --format docker -t fluent -f podman/Dockerfile
@@ -94,7 +94,7 @@ podman-kibana:
 	#    - elasticsearch
 
 	@podman run -dit --name kibana --pod=$(PODNAME) -e "ELASTICSEARCH_HOSTS=http://localhost:9200" \
-		docker.elastic.co/kibana/kibana-oss:7.10.2
+		docker.elastic.co/kibana/kibana:7.14.2
 
 podman-redpanda:
 	# Install redpanda
