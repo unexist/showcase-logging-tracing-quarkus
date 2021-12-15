@@ -14,7 +14,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.unexist.showcase.todo.domain.todo.TodoBase;
 import dev.unexist.showcase.todo.infrastructure.tracing.TraceService;
-import org.eclipse.microprofile.opentracing.Traced;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.slf4j.Logger;
@@ -42,7 +41,6 @@ public class TodoSource {
      * @param  base  A {@link TodoBase} entry
      **/
 
-    @Traced(operationName = "Send back checked Todo")
     public void send(TodoBase base) {
         try {
             String json = this.mapper.writeValueAsString(base);

@@ -11,8 +11,6 @@
 
 package dev.unexist.showcase.todo.domain.todo;
 
-import org.eclipse.microprofile.opentracing.Traced;
-
 import javax.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
@@ -26,7 +24,6 @@ public class TodoService {
      * @return Either {@code true} if the due date is after the start date; {@code false}
      **/
 
-    @Traced
     public boolean check(TodoBase base) {
         return base.getDueDate().getDue().isAfter(base.getDueDate().getStart());
     }
