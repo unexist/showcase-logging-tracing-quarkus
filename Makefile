@@ -32,8 +32,13 @@ podman-machine-rm:
 podman-machine-create: podman-machine-rm podman-machine-create
 
 podman-pod-create:
-	@podman pod create -n $(PODNAME) --network bridge -p 6831:6831/udp -p 16686:16686 \
-		-p 9200:9200 -p 9300:9300 -p 12201:12201/udp -p 5601:5601 -p 9092:9092
+	@podman pod create -n $(PODNAME) --network bridge \
+		-p 6831:6831/udp -p 16686:16686 -p 14268:14268 -p 14250:14250 \
+		-p 13133:13133 -p 4317:4317 -p 55680:55680 \
+		-p 9200:9200 -p 9300:9300 \
+		-p 12201:12201/udp \
+		-p 5601:5601 \
+		-p 9092:9092
 
 podman-pod-rm:
 	@podman pod rm -f $(PODNAME)
@@ -44,17 +49,38 @@ podman-compose:
 	@podman-compose -f docker/docker-compose.yaml -p observability up
 
 podman-jaeger:
-	# Install jaeger
+	# Install Jaeger
 	#jaeger:
 	#  image: jaegertracing/all-in-one:latest
 	#  ports:
 	#    - "6831:6831/udp"
 	#    - "16686:16686"
+	#    - "14268"
+	#    - "14250"
 
 	@podman run -dit --name jaeger --pod=$(PODNAME) jaegertracing/all-in-one:latest
 
+podman-collector-build:
+	@podman build --format docker -t custom-collector -f podman/collector/Dockerfile
+
+podman-collector:
+	# Install Collector
+	#collector:
+	#  image: otel/opentelemetry-collector:latest
+	#  command: ["--config=/etc/otel-collector-config.yaml"]
+	#  volumes:
+	#    - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+	#  ports:
+	#    - "13133:13133" # Health_check extension
+	#    - "4317:4317"   # OTLP gRPC receiver
+	#    - "55680:55680" # OTLP gRPC receiver alternative port
+	#  depends_on:
+	#    - jaeger
+
+	@podman run -dit --name collector --pod=$(PODNAME) custom-collector
+
 podman-elastic:
-	# Install elastic
+	# Install Elastic
 	#elasticsearch:
 	#  image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.2
 	#  ports:
@@ -66,11 +92,11 @@ podman-elastic:
 	@podman run -dit --name elasticsearch --pod=$(PODNAME) -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
 		-e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.14.2
 
-podman-fluent-build:
-	@podman build --format docker -t fluent -f podman/Dockerfile
+podman-fluentd-build:
+	@podman build --format docker -t custom-fluentd -f podman/fluentd/Dockerfile
 
-podman-fluent:
-	# Install fluentd
+podman-fluentd:
+	# Install Fluentd
 	#fluentd:
 	#build: .
 	#ports:
@@ -82,10 +108,10 @@ podman-fluent:
 	#depends_on:
 	#  - elasticsearch
 
-	@podman run -dit --name fluent --pod=$(PODNAME) fluent
+	@podman run -dit --name fluentd --pod=$(PODNAME) custom-fluentd
 
 podman-kibana:
-	# Kibana
+	# Install Kibana
 	#kibana:
 	#  image: docker.elastic.co/kibana/kibana-oss:6.8.2
 	#  ports:
@@ -97,7 +123,7 @@ podman-kibana:
 		docker.elastic.co/kibana/kibana:7.14.2
 
 podman-redpanda:
-	# Install redpanda
+	# Install Redpanda
 	#redpanda:
 	#  container_name: redpanda
 	#  image: vectorized/redpanda
@@ -107,7 +133,7 @@ podman-redpanda:
 
 	@podman run -dit --name redpanda --pod=$(PODNAME) vectorized/redpanda
 
-podman-services: podman-elastic podman-kibana podman-fluent podman-jaeger podman-redpanda
+podman-services: podman-elastic podman-jaeger podman-collector podman-kibana podman-fluent podman-redpanda
 
 # Web
 open-kibana:

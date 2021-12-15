@@ -1,8 +1,7 @@
 version: "3.8"
 
 services:
-
-  # Install jaeger
+  # Install Jaeger
   jaeger:
     image: jaegertracing/all-in-one:latest
     ports:
@@ -11,8 +10,8 @@ services:
       - "14268"
       - "14250"
 
-  # Collector
-  otel-collector:
+  # Install Collector
+  collector:
     image: otel/opentelemetry-collector:latest
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
@@ -24,7 +23,7 @@ services:
     depends_on:
       - jaeger
 
-  # Install elastic
+  # Install Elastic
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.14.2
     ports:
@@ -34,7 +33,7 @@ services:
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
       discovery.type: "single-node"
 
-  # Install fluentd
+  # Install Fluentd
   fluentd:
     build: .
     ports:
@@ -46,7 +45,7 @@ services:
     depends_on:
       - elasticsearch
 
-  # Kibana
+  # Install Kibana
   kibana:
     image: docker.elastic.co/kibana/kibana:7.14.2
     ports:
@@ -54,7 +53,7 @@ services:
     depends_on:
       - elasticsearch
 
-  # Install redpanda
+  # Install Redpanda
   redpanda:
     container_name: redpanda
     image: vectorized/redpanda
