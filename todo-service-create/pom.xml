@@ -25,7 +25,7 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-smallrye-opentracing</artifactId>
+            <artifactId>quarkus-opentelemetry-exporter-otlp</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -36,11 +36,10 @@
             <artifactId>quarkus-logging-json</artifactId>
         </dependency> -->
 
-        <!-- Opentracing -->
+        <!-- Opentelemetry -->
         <dependency>
-            <groupId>io.opentracing.contrib</groupId>
-            <artifactId>opentracing-kafka-client</artifactId>
-            <version>${opentracing-kafka-client.version}</version>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-extension-trace-propagators</artifactId>
         </dependency>
 
         <!-- Testing -->
