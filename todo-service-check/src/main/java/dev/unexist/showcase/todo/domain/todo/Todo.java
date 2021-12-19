@@ -1,5 +1,5 @@
 /**
- * @package Quarkus-Observability-Showcase
+ * @package Quarkus-Logging-Tracing-Quarkus
  *
  * @file Todo class and aggregate root
  * @copyright 2020-2021 Christoph Kappel <christoph@unexist.dev>

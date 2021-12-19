@@ -1,5 +1,5 @@
 /**
- * @package Quarkus-Observability-Showcase
+ * @package Quarkus-Logging-Tracing-Quarkus
  *
  * @file Todo deserializer
  * @copyright 2021 Christoph Kappel <christoph@unexist.dev>

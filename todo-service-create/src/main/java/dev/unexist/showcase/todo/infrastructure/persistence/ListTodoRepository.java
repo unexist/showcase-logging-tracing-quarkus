@@ -1,5 +1,5 @@
 /**
- * @package Quarkus-Observability-Showcase
+ * @package Quarkus-Logging-Tracing-Quarkus
  *
  * @file Todo repository
  * @copyright 2020-2021 Christoph Kappel <christoph@unexist.dev>
