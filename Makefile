@@ -133,7 +133,7 @@ podman-redpanda:
 
 	@podman run -dit --name redpanda --pod=$(PODNAME) vectorized/redpanda
 
-podman-services: podman-elastic podman-jaeger podman-collector podman-kibana podman-fluent podman-redpanda
+podman-services: podman-elastic podman-jaeger podman-collector podman-kibana podman-fluentd podman-redpanda
 
 # Web
 open-kibana:
