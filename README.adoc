@@ -1,4 +1,4 @@
-= Showcase for observability on quarkus
+= Showcase for logging and tracing on quarkus
 
 This project holds a showcase for various kafka related things.
 
