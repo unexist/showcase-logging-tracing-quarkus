@@ -8,7 +8,7 @@
 
     <parent>
         <groupId>dev.unexist.showcase</groupId>
-        <artifactId>showcase-observability-quarkus</artifactId>
+        <artifactId>showcase-logging-tracing-quarkus</artifactId>
         <version>0.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
