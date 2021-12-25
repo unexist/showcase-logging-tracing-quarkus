@@ -16,7 +16,7 @@ endef
 export JSON_TODO
 
 # timestamp: $(date +'%s.%N')
-define GELF_TEST
+define GELF_TEST_UDP
 echo \
 {
   "version": "1.0",
@@ -31,7 +31,24 @@ echo \
   "_AppName": "Tester"
 } | gzip -c -f - | nc -w 1 -u localhost 12201
 endef
-export GELF_TEST
+export GELF_TEST_UDP
+
+define GELF_TEST_TCP
+echo \
+{
+  "version": "1.0",
+  "host": "localhost",
+  "short_message": "Short message",
+  "full_message": "Full message",
+  "timestamp": "1640456345.940518000",
+  "level": 1,
+  "facility": "Tester",
+  "_user_id": 42,
+  "_Environment": "test",
+  "_AppName": "Tester"
+} | gzip -c -f - | nc -w 1 localhost 12201
+endef
+export GELF_TEST_TCP
 
 # Docker
 docker-compose:
@@ -42,43 +59,43 @@ docker-compose:
 PODNAME_REST := logtrace
 PODNAME_OTEL := otel
 
-podman-compose:
+pd-compose:
 	@podman-compose -f docker/docker-compose.yaml -p observability up
 
-podman-machine-create:
+pd-machine-create:
 	@podman machine init --memory=8192 --cpus=2
 
-podman-machine-rm:
+pd-machine-rm:
 	@podman machine rm
 
-podman-machine-create: podman-machine-rm podman-machine-create
+pd-machine-create: pd-machine-rm pd-machine-create
 
-podman-pod-create:
+pd-pod-create:
 	@podman pod create -n $(PODNAME_OTEL) --network bridge \
 		-p 13133:13133 -p 4317:4317 -p 55680:55680
 
 	@podman pod create -n $(PODNAME_REST) --network bridge \
 		-p 6831:6831/udp -p 16686:16686 -p 14268:14268 -p 14250:14250 \
 		-p 9200:9200 -p 9300:9300 \
-		-p 12201:12201/udp \
+		-p 12201:12201 \
 		-p 5601:5601 \
 		-p 9092:9092
 
-podman-pod-rm:
+pd-pod-rm:
 	@podman pod rm -f $(PODNAME_OTEL)
 	@podman pod rm -f $(PODNAME_REST)
 
-podman-pod-recreate: podman-pod-rm podman-pod-create
+pd-pod-recreate: pd-pod-rm pd-pod-create
 
-podman-build-collector:
+pd-build-collector:
 	@podman build --format docker -t custom-collector -f podman/collector/Dockerfile
 
-podman-build-fluentd:
+pd-build-fluentd:
 	@podman build --format docker -t custom-fluentd -f podman/fluentd/Dockerfile
 
-podman-build: podman-build-collector podman-build-fluentd
+pd-build: pd-build-collector pd-build-fluentd
 
-podman-jaeger:
+pd-jaeger:
 	# Install Jaeger
 	#jaeger:
 	#  image: jaegertracing/all-in-one:latest
@@ -90,7 +107,7 @@ podman-jaeger:
 
 	@podman run -dit --name jaeger --pod=$(PODNAME_REST) jaegertracing/all-in-one:latest
 
-podman-collector:
+pd-collector:
 	# Install Collector
 	#collector:
 	#  image: otel/opentelemetry-collector:latest
@@ -106,7 +123,7 @@ podman-collector:
 
 	@podman run -dit --name collector --pod=$(PODNAME_OTEL) custom-collector
 
-podman-elastic:
+pd-elastic:
 	# Install Elastic
 	#elasticsearch:
 	#  image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.2
@@ -119,7 +136,7 @@ podman-elastic:
 	@podman run -dit --name elasticsearch --pod=$(PODNAME_REST) -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
 		-e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.14.2
 
-podman-fluentd:
+pd-fluentd:
 	# Install Fluentd
 	#fluentd:
 	#build: .
@@ -134,7 +151,7 @@ podman-fluentd:
 
 	@podman run -dit --name fluentd --pod=$(PODNAME_REST) custom-fluentd
 
-podman-kibana:
+pd-kibana:
 	# Install Kibana
 	#kibana:
 	#  image: docker.elastic.co/kibana/kibana-oss:6.8.2
@@ -146,7 +163,7 @@ podman-kibana:
 	@podman run -dit --name kibana --pod=$(PODNAME_REST) -e "ELASTICSEARCH_HOSTS=http://localhost:9200" \
 		docker.elastic.co/kibana/kibana:7.14.2
 
-podman-redpanda:
+pd-redpanda:
 	# Install Redpanda
 	#redpanda:
 	#  container_name: redpanda
@@ -157,7 +174,7 @@ podman-redpanda:
 
 	@podman run -dit --name redpanda --pod=$(PODNAME_REST) vectorized/redpanda
 
-podman-services: podman-elastic podman-jaeger podman-collector podman-kibana podman-fluentd podman-redpanda
+pd-services: pd-elastic pd-jaeger pd-collector pd-kibana pd-fluentd pd-redpanda
 
 # Web
 open-kibana:
@@ -183,8 +200,11 @@ todo:
 list:
 	@curl -X 'GET' 'http://localhost:8080/todo' -H 'accept: */*' | jq .
 
-gelf:
-	@echo $$GELF_TEST | bash
+gelf-udp:
+	@echo $$GELF_TEST_UDP | bash
+
+gelf-tcp:
+	@echo $$GELF_TEST_TCP | bash
 
 # Kafka
 kat-listen:
