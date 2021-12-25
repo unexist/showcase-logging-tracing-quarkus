@@ -14,9 +14,12 @@ This project holds a showcase for various kafka related things.
 - https://quarkus.io/guides/kafka-dev-services
 - https://quarkus.io/guides/centralized-log-management#send-logs-to-fluentd-efk
 - https://quarkus.io/guides/centralized-log-management#gelf-alternative-use-syslog
-- https://quarkus.io/guides/opentracing
 - https://logging.paluch.biz/
+- https://quarkus.io/guides/opentracing
+- https://quarkus.io/guides/opentelemetry
 - https://opentracing.io/guides/java/spans/
 - https://medium.com/jaegertracing/the-life-of-a-span-ee508410200b
+- https://medium.com/jaegertracing/migrating-from-jaeger-client-to-opentelemetry-sdk-bd337d796759
 - https://www.jaegertracing.io/docs/1.28/client-libraries/#tracespan-identity
 - https://istio.io/latest/about/faq/distributed-tracing/
+- https://issueexplorer.com/issue/containers/podman-machine-cni/8
