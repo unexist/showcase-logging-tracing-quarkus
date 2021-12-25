@@ -15,13 +15,35 @@ curl -X 'POST' \
 endef
 export JSON_TODO
 
+# timestamp: $(date +'%s.%N')
+define GELF_TEST
+echo \
+{
+  "version": "1.0",
+  "host": "localhost",
+  "short_message": "Short message",
+  "full_message": "Full message",
+  "timestamp": "1640456345.940518000",
+  "level": 1,
+  "facility": "Tester",
+  "_user_id": 42,
+  "_Environment": "test",
+  "_AppName": "Tester"
+} | gzip -c -f - | nc -w 1 -u localhost 12201
+endef
+export GELF_TEST
+
 # Docker
 docker-compose:
 	@docker-compose -f docker/docker-compose.yaml \
 		-p observability up
 
 # Podman
-PODNAME := observ
+PODNAME_REST := logtrace
+PODNAME_OTEL := otel
+
+podman-compose:
+	@podman-compose -f docker/docker-compose.yaml -p observability up
 
 podman-machine-create:
 	@podman machine init --memory=8192 --cpus=2
@@ -32,21 +54,29 @@ podman-machine-rm:
 podman-machine-create: podman-machine-rm podman-machine-create
 
 podman-pod-create:
-	@podman pod create -n $(PODNAME) --network bridge \
+	@podman pod create -n $(PODNAME_OTEL) --network bridge \
+		-p 13133:13133 -p 4317:4317 -p 55680:55680
+
+	@podman pod create -n $(PODNAME_REST) --network bridge \
 		-p 6831:6831/udp -p 16686:16686 -p 14268:14268 -p 14250:14250 \
-		-p 13133:13133 -p 4317:4317 -p 55680:55680 \
 		-p 9200:9200 -p 9300:9300 \
 		-p 12201:12201/udp \
 		-p 5601:5601 \
 		-p 9092:9092
 
 podman-pod-rm:
-	@podman pod rm -f $(PODNAME)
+	@podman pod rm -f $(PODNAME_OTEL)
+	@podman pod rm -f $(PODNAME_REST)
 
 podman-pod-recreate: podman-pod-rm podman-pod-create
 
-podman-compose:
-	@podman-compose -f docker/docker-compose.yaml -p observability up
+podman-build-collector:
+	@podman build --format docker -t custom-collector -f podman/collector/Dockerfile
+
+podman-build-fluentd:
+	@podman build --format docker -t custom-fluentd -f podman/fluentd/Dockerfile
+
+podman-build: podman-build-collector podman-build-fluentd
 
 podman-jaeger:
 	# Install Jaeger
@@ -58,10 +88,7 @@ podman-jaeger:
 	#    - "14268"
 	#    - "14250"
 
-	@podman run -dit --name jaeger --pod=$(PODNAME) jaegertracing/all-in-one:latest
-
-podman-collector-build:
-	@podman build --format docker -t custom-collector -f podman/collector/Dockerfile
+	@podman run -dit --name jaeger --pod=$(PODNAME_REST) jaegertracing/all-in-one:latest
 
 podman-collector:
 	# Install Collector
@@ -77,7 +104,7 @@ podman-collector:
 	#  depends_on:
 	#    - jaeger
 
-	@podman run -dit --name collector --pod=$(PODNAME) custom-collector
+	@podman run -dit --name collector --pod=$(PODNAME_OTEL) custom-collector
 
 podman-elastic:
 	# Install Elastic
@@ -89,11 +116,8 @@ podman-elastic:
 	#  environment:
 	#    ES_JAVA_OPTS: "-Xms512m -Xmx512m"
 
-	@podman run -dit --name elasticsearch --pod=$(PODNAME) -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
+	@podman run -dit --name elasticsearch --pod=$(PODNAME_REST) -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
 		-e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.14.2
-
-podman-fluentd-build:
-	@podman build --format docker -t custom-fluentd -f podman/fluentd/Dockerfile
 
 podman-fluentd:
 	# Install Fluentd
@@ -108,7 +132,7 @@ podman-fluentd:
 	#depends_on:
 	#  - elasticsearch
 
-	@podman run -dit --name fluentd --pod=$(PODNAME) custom-fluentd
+	@podman run -dit --name fluentd --pod=$(PODNAME_REST) custom-fluentd
 
 podman-kibana:
 	# Install Kibana
@@ -119,7 +143,7 @@ podman-kibana:
 	#  depends_on:
 	#    - elasticsearch
 
-	@podman run -dit --name kibana --pod=$(PODNAME) -e "ELASTICSEARCH_HOSTS=http://localhost:9200" \
+	@podman run -dit --name kibana --pod=$(PODNAME_REST) -e "ELASTICSEARCH_HOSTS=http://localhost:9200" \
 		docker.elastic.co/kibana/kibana:7.14.2
 
 podman-redpanda:
@@ -131,7 +155,7 @@ podman-redpanda:
 	#  ports:
 	#    - "9092:9092"
 
-	@podman run -dit --name redpanda --pod=$(PODNAME) vectorized/redpanda
+	@podman run -dit --name redpanda --pod=$(PODNAME_REST) vectorized/redpanda
 
 podman-services: podman-elastic podman-jaeger podman-collector podman-kibana podman-fluentd podman-redpanda
 
@@ -158,6 +182,9 @@ todo:
 
 list:
 	@curl -X 'GET' 'http://localhost:8080/todo' -H 'accept: */*' | jq .
+
+gelf:
+	@echo $$GELF_TEST | bash
 
 # Kafka
 kat-listen:
