@@ -14,15 +14,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.unexist.showcase.todo.domain.todo.TodoBase;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
-import dev.unexist.showcase.todo.infrastructure.interceptor.TracedEventListener;
+import io.opentelemetry.context.Context;
+import io.smallrye.reactive.messaging.TracingMetadata;
 import io.smallrye.reactive.messaging.kafka.IncomingKafkaRecord;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.eclipse.microprofile.reactive.messaging.Message;
+import org.eclipse.microprofile.reactive.messaging.Metadata;
+import org.eclipse.microprofile.reactive.messaging.Outgoing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.concurrent.CompletionStage;
 
 @ApplicationScoped
 public class TodoSink {
@@ -39,19 +42,25 @@ public class TodoSink {
      * @param  record  A {@link IncomingKafkaRecord} to handle
      **/
 
-    @TracedEventListener
     @Incoming("todo-created")
-    public CompletionStage<Void> consumeTodos(IncomingKafkaRecord<Integer, String> record) {
+    @Outgoing("todo-checked")
+    public Message<String> consumeTodos(IncomingKafkaRecord<Integer, String> record) {
+        Message<String> outMessage = null;
+
         LOGGER.info("Received message from todo-created");
 
         try {
-            todoService.check(this.mapper.readValue(record.getPayload(), TodoBase.class));
+            if (this.todoService.check(this.mapper.readValue(record.getPayload(), TodoBase.class))) {
+                outMessage = Message.of(record.getPayload())
+                        .withMetadata(Metadata.of(TracingMetadata.withPrevious(Context.current())));
+            }
+
             LOGGER.info("Received todo with payload {}", record.getPayload());
         } catch (JsonProcessingException e) {
             LOGGER.error("Error reading JSON", e);
         }
 
-        return record.ack();
+        return outMessage;
     }
 }
 

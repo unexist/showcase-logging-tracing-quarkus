@@ -14,7 +14,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.unexist.showcase.todo.domain.todo.TodoBase;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
-import dev.unexist.showcase.todo.infrastructure.interceptor.TracedEventListener;
 import io.smallrye.reactive.messaging.kafka.IncomingKafkaRecord;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.slf4j.Logger;
@@ -33,7 +32,6 @@ public class TodoSink {
     @Inject
     TodoService todoService;
 
-    @TracedEventListener
     @Incoming("todo-checked")
     public CompletionStage<Void> consumeTodos(IncomingKafkaRecord<Integer, String> record) {
         TodoBase todo = null;

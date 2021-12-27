@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.unexist.showcase.todo.domain.todo.Todo;
 import dev.unexist.showcase.todo.domain.todo.TodoBase;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
-import dev.unexist.showcase.todo.infrastructure.tracing.TraceService;
+import io.smallrye.reactive.messaging.TracingMetadata;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -26,6 +26,8 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
+import org.eclipse.microprofile.reactive.messaging.Message;
+import org.eclipse.microprofile.reactive.messaging.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,9 +59,6 @@ public class TodoResource {
     TodoService todoService;
 
     @Inject
-    TraceService traceService;
-
-    @Inject
     @Channel("todo-created")
     Emitter<String> emitter;
 
@@ -81,7 +80,11 @@ public class TodoResource {
 
             LOGGER.info("Received todo with payload {}", json);
 
-            this.emitter.send(this.traceService.createTracedRecord(1, json));
+            Message<String> outMessage = Message.of(json)
+                    .withMetadata(Metadata.of(TracingMetadata.withPrevious(
+                            io.opentelemetry.context.Context.current())));
+
+            this.emitter.send(outMessage);
 
             LOGGER.info("Sent message to todo-created");
 
