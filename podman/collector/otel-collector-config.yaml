@@ -4,10 +4,14 @@ receivers:
       grpc:
 
 exporters:
+  otlp/elastic:
+    endpoint: 127.0.0.1:9200
+    insecure: true
+
   logging:
 
   jaeger:
-    endpoint: localhost:14250
+    endpoint: 127.0.0.1:14250
     insecure: true
 
 processors:
@@ -22,4 +26,6 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [jaeger]
+      exporters:
+        - jaeger
+        - otlp/elastic
