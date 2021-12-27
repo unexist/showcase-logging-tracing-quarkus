@@ -63,7 +63,7 @@ pd-compose:
 	@podman-compose -f docker/docker-compose.yaml -p observability up
 
 pd-machine-create:
-	@podman machine init --memory=8192 --cpus=2
+	@podman machine init --memory=8192 --cpus=2 --disk-size=20
 
 pd-machine-rm:
 	@podman machine rm
@@ -134,7 +134,7 @@ pd-elastic:
 	#    ES_JAVA_OPTS: "-Xms512m -Xmx512m"
 
 	@podman run -dit --name elasticsearch --pod=$(PODNAME_REST) -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
-		-e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.14.2
+		-e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.16.0
 
 pd-fluentd:
 	# Install Fluentd
@@ -161,7 +161,7 @@ pd-kibana:
 	#    - elasticsearch
 
 	@podman run -dit --name kibana --pod=$(PODNAME_REST) -e "ELASTICSEARCH_HOSTS=http://localhost:9200" \
-		docker.elastic.co/kibana/kibana:7.14.2
+		docker.elastic.co/kibana/kibana:7.16.0
 
 pd-redpanda:
 	# Install Redpanda
