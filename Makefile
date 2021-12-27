@@ -56,8 +56,7 @@ docker-compose:
 		-p observability up
 
 # Podman
-PODNAME_REST := logtrace
-PODNAME_OTEL := otel
+PODNAME := logtrace
 
 pd-compose:
 	@podman-compose -f docker/docker-compose.yaml -p observability up
@@ -71,10 +70,8 @@ pd-machine-rm:
 pd-machine-create: pd-machine-rm pd-machine-create
 
 pd-pod-create:
-	@podman pod create -n $(PODNAME_OTEL) --network bridge \
-		-p 13133:13133 -p 4317:4317 -p 55680:55680
-
-	@podman pod create -n $(PODNAME_REST) --network bridge \
+	@podman pod create -n $(PODNAME) --network bridge \
+		-p 13133:13133 -p 4317:4317 -p 55680:55680 \
 		-p 6831:6831/udp -p 16686:16686 -p 14268:14268 -p 14250:14250 \
 		-p 9200:9200 -p 9300:9300 \
 		-p 12201:12201 \
@@ -82,8 +79,7 @@ pd-pod-create:
 		-p 9092:9092
 
 pd-pod-rm:
-	@podman pod rm -f $(PODNAME_OTEL)
-	@podman pod rm -f $(PODNAME_REST)
+	@podman pod rm -f $(PODNAME)
 
 pd-pod-recreate: pd-pod-rm pd-pod-create
 
@@ -94,18 +90,6 @@ pd-build-fluentd:
 	@podman build --format docker -t custom-fluentd -f podman/fluentd/Dockerfile
 
 pd-build: pd-build-collector pd-build-fluentd
-
-pd-jaeger:
-	# Install Jaeger
-	#jaeger:
-	#  image: jaegertracing/all-in-one:latest
-	#  ports:
-	#    - "6831:6831/udp"
-	#    - "16686:16686"
-	#    - "14268"
-	#    - "14250"
-
-	@podman run -dit --name jaeger --pod=$(PODNAME_REST) jaegertracing/all-in-one:latest
 
 pd-collector:
 	# Install Collector
@@ -121,7 +105,19 @@ pd-collector:
 	#  depends_on:
 	#    - jaeger
 
-	@podman run -dit --name collector --pod=$(PODNAME_OTEL) custom-collector
+	@podman run -dit --name collector --pod=$(PODNAME) custom-collector
+
+pd-jaeger:
+	# Install Jaeger
+	#jaeger:
+	#  image: jaegertracing/all-in-one:latest
+	#  ports:
+	#    - "6831:6831/udp"
+	#    - "16686:16686"
+	#    - "14268"
+	#    - "14250"
+
+	@podman run -dit --name jaeger --pod=$(PODNAME) jaegertracing/all-in-one:latest
 
 pd-elastic:
 	# Install Elastic
@@ -133,7 +129,7 @@ pd-elastic:
 	#  environment:
 	#    ES_JAVA_OPTS: "-Xms512m -Xmx512m"
 
-	@podman run -dit --name elasticsearch --pod=$(PODNAME_REST) -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
+	@podman run -dit --name elasticsearch --pod=$(PODNAME) -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
 		-e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.16.0
 
 pd-fluentd:
@@ -149,7 +145,7 @@ pd-fluentd:
 	#depends_on:
 	#  - elasticsearch
 
-	@podman run -dit --name fluentd --pod=$(PODNAME_REST) custom-fluentd
+	@podman run -dit --name fluentd --pod=$(PODNAME) custom-fluentd
 
 pd-kibana:
 	# Install Kibana
@@ -160,7 +156,7 @@ pd-kibana:
 	#  depends_on:
 	#    - elasticsearch
 
-	@podman run -dit --name kibana --pod=$(PODNAME_REST) -e "ELASTICSEARCH_HOSTS=http://localhost:9200" \
+	@podman run -dit --name kibana --pod=$(PODNAME) -e "ELASTICSEARCH_HOSTS=http://localhost:9200" \
 		docker.elastic.co/kibana/kibana:7.16.0
 
 pd-redpanda:
@@ -172,9 +168,9 @@ pd-redpanda:
 	#  ports:
 	#    - "9092:9092"
 
-	@podman run -dit --name redpanda --pod=$(PODNAME_REST) vectorized/redpanda
+	@podman run -dit --name redpanda --pod=$(PODNAME) vectorized/redpanda
 
-pd-services: pd-elastic pd-jaeger pd-collector pd-kibana pd-fluentd pd-redpanda
+pd-services: pd-elastic pd-collector pd-jaeger pd-kibana pd-fluentd pd-redpanda
 
 # Web
 open-kibana:
@@ -194,10 +190,10 @@ service-check:
 	mvn -f todo-service-check/pom.xml quarkus:dev
 
 # Tools
-todo:
+rest-post:
 	@echo $$JSON_TODO | bash
 
-list:
+rest-list:
 	@curl -X 'GET' 'http://localhost:8080/todo' -H 'accept: */*' | jq .
 
 gelf-udp:
