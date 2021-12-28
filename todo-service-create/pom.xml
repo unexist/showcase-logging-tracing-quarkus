@@ -14,7 +14,7 @@
     </parent>
 
     <properties>
-        <opentracing-kafka-client.version>0.1.15</opentracing-kafka-client.version>
+        <awaitility.version>4.1.1</awaitility.version>
     </properties>
 
     <dependencies>
@@ -35,6 +35,13 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-logging-json</artifactId>
         </dependency> -->
+
+        <!-- Tools -->
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>${awaitility.version}</version>
+        </dependency>
 
         <!-- Opentelemetry -->
         <dependency>
