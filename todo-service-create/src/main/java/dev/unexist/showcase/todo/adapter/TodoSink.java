@@ -14,6 +14,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.unexist.showcase.todo.domain.todo.TodoBase;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.context.Context;
+import io.smallrye.reactive.messaging.TracingMetadata;
 import io.smallrye.reactive.messaging.kafka.IncomingKafkaRecord;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.slf4j.Logger;
@@ -34,17 +38,28 @@ public class TodoSink {
 
     @Incoming("todo-checked")
     public CompletionStage<Void> consumeTodos(IncomingKafkaRecord<Integer, String> record) {
-        TodoBase todo = null;
+        LOGGER.info("Received message from todo-checked");
+        LOGGER.info("Payload={}", record.getPayload());
+
+        TracingMetadata.fromMessage(record).get().getCurrentContext().makeCurrent();
+
+        Span.current()
+                .updateName("Received message from todo-checked");
 
         try {
-            todo = this.mapper.readValue(record.getPayload(), TodoBase.class);
+            TodoBase todoBase = this.mapper.readValue(record.getPayload(), TodoBase.class);
 
-            LOGGER.info("Received todo with payload {}", record.getPayload());
+            Span.current()
+                    .addEvent("Stored new todo")
+                    .setAttribute("id", todoService.create(todoBase));
         } catch (JsonProcessingException e) {
-            LOGGER.error("Error reading JSON", e);
+            LOGGER.error("Error handling JSON", e);
+
+            Span.current()
+                    .setStatus(StatusCode.ERROR, "Error handling JSON");
         }
 
-        todoService.create(todo);
+        Span.current().storeInContext(Context.current());
 
         return record.ack();
     }

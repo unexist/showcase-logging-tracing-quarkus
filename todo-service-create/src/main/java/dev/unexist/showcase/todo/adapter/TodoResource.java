@@ -16,7 +16,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.unexist.showcase.todo.domain.todo.Todo;
 import dev.unexist.showcase.todo.domain.todo.TodoBase;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
-import io.smallrye.reactive.messaging.TracingMetadata;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -24,10 +25,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import org.eclipse.microprofile.reactive.messaging.Channel;
-import org.eclipse.microprofile.reactive.messaging.Emitter;
-import org.eclipse.microprofile.reactive.messaging.Message;
-import org.eclipse.microprofile.reactive.messaging.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,8 +56,7 @@ public class TodoResource {
     TodoService todoService;
 
     @Inject
-    @Channel("todo-created")
-    Emitter<String> emitter;
+    TodoSource todoSource;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -75,29 +71,36 @@ public class TodoResource {
     public Response create(TodoBase base, @Context UriInfo uriInfo) {
         Response.ResponseBuilder response;
 
+        LOGGER.info("Received post request");
+
+        Span.current()
+                .updateName("Received post request");
+
         try {
             String json = this.mapper.writeValueAsString(base);
 
-            LOGGER.info("Received todo with payload {}", json);
+            LOGGER.info("Payload={}", json);
 
-            Message<String> outMessage = Message.of(json)
-                    .withMetadata(Metadata.of(TracingMetadata.withPrevious(
-                            io.opentelemetry.context.Context.current())));
-
-            this.emitter.send(outMessage);
-
-            LOGGER.info("Sent message to todo-created");
+            this.todoSource.send(json);
 
             URI uri = uriInfo.getAbsolutePathBuilder()
                     .path(Integer.toString(-1))
                     .build();
 
+            Span.current()
+                    .setStatus(StatusCode.OK);
+
             response = Response.created(uri);
         } catch (JsonProcessingException e) {
-            LOGGER.error("Error converting todo", e);
+            LOGGER.error("Error handling JSON", e);
+
+            Span.current()
+                    .setStatus(StatusCode.ERROR, "Error handling JSON");
 
             response = Response.status(Response.Status.NOT_ACCEPTABLE);
         }
+
+        Span.current().storeInContext(io.opentelemetry.context.Context.current());
 
         return response.build();
     }

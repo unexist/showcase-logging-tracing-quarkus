@@ -11,10 +11,15 @@
 
 package dev.unexist.showcase.todo.domain.todo;
 
+import io.opentelemetry.extension.annotations.WithSpan;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+
+import static org.awaitility.Awaitility.await;
 
 @ApplicationScoped
 public class TodoService {
@@ -30,8 +35,11 @@ public class TodoService {
      * @return Either id of the entry on success; otherwise {@code -1}
      **/
 
+    @WithSpan
     public int create(TodoBase base) {
         Todo todo = new Todo(base);
+
+        await().between(Duration.ofSeconds(1), Duration.ofSeconds(5));
 
         return this.todoRepository.add(todo) ? todo.getId() : -1;
     }

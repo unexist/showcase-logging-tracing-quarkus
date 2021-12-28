@@ -14,18 +14,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.unexist.showcase.todo.domain.todo.TodoBase;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.smallrye.reactive.messaging.TracingMetadata;
 import io.smallrye.reactive.messaging.kafka.IncomingKafkaRecord;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
-import org.eclipse.microprofile.reactive.messaging.Message;
-import org.eclipse.microprofile.reactive.messaging.Metadata;
-import org.eclipse.microprofile.reactive.messaging.Outgoing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.concurrent.CompletionStage;
 
 @ApplicationScoped
 public class TodoSink {
@@ -36,6 +36,9 @@ public class TodoSink {
     @Inject
     TodoService todoService;
 
+    @Inject
+    TodoSource todoSource;
+
     /**
      * Receive {@link TodoBase} from Kafka
      *
@@ -43,24 +46,34 @@ public class TodoSink {
      **/
 
     @Incoming("todo-created")
-    @Outgoing("todo-checked")
-    public Message<String> consumeTodos(IncomingKafkaRecord<Integer, String> record) {
-        Message<String> outMessage = null;
-
+    public CompletionStage<Void> consumeTodos(IncomingKafkaRecord<Integer, String> record) {
         LOGGER.info("Received message from todo-created");
+        LOGGER.info("Payload={}", record.getPayload());
+
+        TracingMetadata.fromMessage(record).get().getCurrentContext().makeCurrent();
+
+        Span.current()
+                .updateName("Received message from todo-created");
 
         try {
-            if (this.todoService.check(this.mapper.readValue(record.getPayload(), TodoBase.class))) {
-                outMessage = Message.of(record.getPayload())
-                        .withMetadata(Metadata.of(TracingMetadata.withPrevious(Context.current())));
-            }
+            TodoBase todoBase = this.mapper.readValue(record.getPayload(), TodoBase.class);
 
-            LOGGER.info("Received todo with payload {}", record.getPayload());
+            Span.current()
+                    .addEvent("Stored new todo")
+                    .setAttribute("result", this.todoService.check(todoBase));
+
+            this.todoSource.send(this.mapper.writeValueAsString(todoBase));
+
         } catch (JsonProcessingException e) {
             LOGGER.error("Error reading JSON", e);
+
+            Span.current()
+                    .setStatus(StatusCode.ERROR, "Error handling JSON");
         }
 
-        return outMessage;
+        Span.current().storeInContext(Context.current());
+
+        return record.ack();
     }
 }
 
