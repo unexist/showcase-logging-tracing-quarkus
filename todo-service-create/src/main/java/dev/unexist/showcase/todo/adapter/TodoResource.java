@@ -100,8 +100,6 @@ public class TodoResource {
             response = Response.status(Response.Status.NOT_ACCEPTABLE);
         }
 
-        Span.current().storeInContext(io.opentelemetry.context.Context.current());
-
         return response.build();
     }
 

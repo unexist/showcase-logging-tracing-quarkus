@@ -14,6 +14,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.unexist.showcase.todo.domain.todo.TodoBase;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
@@ -50,16 +52,16 @@ public class TodoSink {
             TodoBase todoBase = this.mapper.readValue(record.getPayload(), TodoBase.class);
 
             Span.current()
-                    .addEvent("Stored new todo")
-                    .setAttribute("id", todoService.create(todoBase));
+                    .addEvent("Stored new todo", Attributes.of(
+                            AttributeKey.stringKey("id"),
+                            String.valueOf(this.todoService.create(todoBase))));
         } catch (JsonProcessingException e) {
             LOGGER.error("Error handling JSON", e);
 
             Span.current()
+                    .recordException(e)
                     .setStatus(StatusCode.ERROR, "Error handling JSON");
         }
-
-        Span.current().storeInContext(Context.current());
 
         return record.ack();
     }
