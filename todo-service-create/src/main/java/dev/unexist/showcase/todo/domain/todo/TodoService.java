@@ -11,6 +11,8 @@
 
 package dev.unexist.showcase.todo.domain.todo;
 
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.extension.annotations.WithSpan;
 
@@ -40,13 +42,14 @@ public class TodoService {
     public int create(TodoBase base) {
         Todo todo = new Todo(base);
 
-        await().between(Duration.ofSeconds(1), Duration.ofSeconds(5));
+        await().between(Duration.ofSeconds(1), Duration.ofSeconds(10));
 
         int idx = this.todoRepository.add(todo) ? todo.getId() : -1;
 
         Span.current()
                 .updateName("Created todo")
-                .setAttribute("idx", idx);
+                .addEvent("Created todo", Attributes.of(
+                        AttributeKey.stringKey("idx"), String.valueOf(idx)));
 
         return idx;
     }

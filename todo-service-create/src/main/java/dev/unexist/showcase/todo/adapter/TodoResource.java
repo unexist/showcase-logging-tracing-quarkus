@@ -100,8 +100,6 @@ public class TodoResource {
             response = Response.status(Response.Status.NOT_ACCEPTABLE);
         }
 
-        Span.current().end();
-
         return response.build();
     }
 

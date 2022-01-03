@@ -18,7 +18,6 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
-import io.opentelemetry.context.Context;
 import io.smallrye.reactive.messaging.TracingMetadata;
 import io.smallrye.reactive.messaging.kafka.IncomingKafkaRecord;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
@@ -74,6 +73,8 @@ public class TodoSink {
                     .recordException(e)
                     .setStatus(StatusCode.ERROR, "Error handling JSON");
         }
+
+        Span.current().end();
 
         return record.ack();
     }

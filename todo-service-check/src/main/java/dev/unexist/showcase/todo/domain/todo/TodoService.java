@@ -11,6 +11,9 @@
 
 package dev.unexist.showcase.todo.domain.todo;
 
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.extension.annotations.WithSpan;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -29,10 +32,17 @@ public class TodoService {
      * @return Either {@code true} if the due date is after the start date; {@code false}
      **/
 
-    @WithSpan
+    @WithSpan("Check todo")
     public boolean check(TodoBase base) {
-        await().between(Duration.ofSeconds(1), Duration.ofSeconds(5));
+        await().between(Duration.ofSeconds(1), Duration.ofSeconds(10));
 
-        return base.getDueDate().getDue().isAfter(base.getDueDate().getStart());
+        boolean result = base.getDueDate().getDue().isAfter(base.getDueDate().getStart());
+
+        Span.current()
+                .updateName("Checked todo")
+                .addEvent("Checked todo", Attributes.of(
+                        AttributeKey.stringKey("result"), String.valueOf(result)));
+
+        return result;
     }
 }
