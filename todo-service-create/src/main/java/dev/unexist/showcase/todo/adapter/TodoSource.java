@@ -13,6 +13,7 @@ package dev.unexist.showcase.todo.adapter;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.extension.annotations.WithSpan;
 import io.smallrye.reactive.messaging.TracingMetadata;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
@@ -38,6 +39,7 @@ public class TodoSource {
      * @param  json  JSON string to send
      **/
 
+    @WithSpan("Sent message to todo-created")
     public void send(String json) {
         LOGGER.info("Sent message to todo-created");
 
