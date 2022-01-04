@@ -41,7 +41,7 @@ public class TodoService {
         Span.current()
                 .updateName("Checked todo")
                 .addEvent("Checked todo", Attributes.of(
-                        AttributeKey.stringKey("result"), String.valueOf(result)));
+                        AttributeKey.stringKey("valid"), String.valueOf(result)));
 
         return result;
     }
