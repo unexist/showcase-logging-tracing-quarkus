@@ -189,6 +189,8 @@ service-create:
 service-check:
 	mvn -f todo-service-check/pom.xml quarkus:dev
 
+services: service-create service-check
+
 # Tools
 rest-post:
 	@echo $$JSON_TODO | bash
