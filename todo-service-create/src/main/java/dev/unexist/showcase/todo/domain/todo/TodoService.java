@@ -14,13 +14,14 @@ package dev.unexist.showcase.todo.domain.todo;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.extension.annotations.WithSpan;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.awaitility.Awaitility.await;
 
@@ -39,63 +40,52 @@ public class TodoService {
      **/
 
     @WithSpan("Create todo")
-    public int create(TodoBase base) {
+    public Optional<Todo> create(TodoBase base) {
         Todo todo = new Todo(base);
+
+        todo.setId(UUID.randomUUID().toString());
 
         await().between(Duration.ofSeconds(1), Duration.ofSeconds(10));
 
-        int idx = this.todoRepository.add(todo) ? todo.getId() : -1;
+        if (this.todoRepository.add(todo)) {
+            Span.current()
+                    .addEvent("Added id to todo", Attributes.of(
+                            AttributeKey.stringKey("id"), todo.getId()))
+                    .setStatus(StatusCode.OK);
+        } else {
+            Span.current()
+                    .setStatus(StatusCode.ERROR);
 
-        Span.current()
-                .updateName("Created todo")
-                .addEvent("Created todo", Attributes.of(
-                        AttributeKey.stringKey("idx"), String.valueOf(idx)));
+            todo = null;
 
-        return idx;
+        }
+
+        return Optional.ofNullable(todo);
     }
 
     /**
      * Update {@link Todo} at with given id
      *
-     * @param  id    Id to update
-     * @param  base  Values for the entry
+     * @param  todo  A {@link Todo} to update
      *
      * @return Either {@code true} on success; otherwise {@code false}
      **/
 
-    public boolean update(int id, TodoBase base) {
-        Optional<Todo> todo = this.findById(id);
+    @WithSpan("Update todo")
+    public boolean update(Todo todo) {
         boolean ret = false;
 
-        if (todo.isPresent()) {
-            todo.get().update(base);
-
-            ret = this.todoRepository.update(todo.get());
+        if (this.todoRepository.update(todo)) {
+            Span.current()
+                    .addEvent("Updated todo", Attributes.of(
+                            AttributeKey.stringKey("id"), todo.getId()))
+                    .setStatus(StatusCode.OK);
+        } else {
+            Span.current()
+                    .setStatus(StatusCode.ERROR, "Todo not found");
         }
 
         return ret;
-    }
-
-    /**
-     * Delete {@link Todo} with given id
-     *
-     * @param  id  Id to delete
-     *
-     * @return Either {@code true} on success; otherwise {@code false}
-     **/
-
-    public boolean delete(int id) {
-        return this.todoRepository.deleteById(id);
-    }
-
-    /**
-     * Get all {@link Todo} entries
-     *
-     * @return List of all {@link Todo}; might be empty
-     **/
-
-    public List<Todo> getAll() {
-        return this.todoRepository.getAll();
     }
 
     /**
@@ -106,7 +96,7 @@ public class TodoService {
      * @return A {@link Optional} of the entry
      **/
 
-    public Optional<Todo> findById(int id) {
+    public Optional<Todo> findById(String id) {
         return this.todoRepository.findById(id);
     }
 }

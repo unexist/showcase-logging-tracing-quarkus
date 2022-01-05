@@ -11,7 +11,11 @@
 
 package dev.unexist.showcase.todo.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.unexist.showcase.todo.domain.todo.Todo;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.extension.annotations.WithSpan;
 import io.smallrye.reactive.messaging.TracingMetadata;
@@ -29,25 +33,39 @@ import javax.inject.Inject;
 public class TodoSource {
     private static final Logger LOGGER = LoggerFactory.getLogger(TodoSource.class);
 
+    private final ObjectMapper mapper = new ObjectMapper();
+
     @Inject
     @Channel("todo-created")
     Emitter<String> emitter;
 
     /**
-     * Send json string to topic
+     * Send {@link Todo} to topic
      *
-     * @param  json  JSON string to send
+     * @param  todo  A {@link Todo} to convert and send
      **/
 
     @WithSpan("Sent message to todo-created")
-    public void send(String json) {
+    public void send(Todo todo) {
         LOGGER.info("Sent message to todo-created");
 
-        Message<String> outMessage = Message.of(json)
-                .withMetadata(Metadata.of(
-                        TracingMetadata.withPrevious(Context.current())
-                                .withSpan(Span.current())));
+        try {
+            String json = this.mapper.writeValueAsString(todo);
 
-        this.emitter.send(outMessage);
+            Message<String> outMessage = Message.of(json)
+                    .withMetadata(Metadata.of(
+                            TracingMetadata.withPrevious(Context.current())
+                                    .withSpan(Span.current())));
+
+            this.emitter.send(outMessage);
+
+            Span.current().setStatus(StatusCode.OK);
+        } catch (JsonProcessingException e) {
+            LOGGER.error("Error handling JSON", e);
+
+            Span.current()
+                    .recordException(e)
+                    .setStatus(StatusCode.ERROR, "Error handling JSON");
+        }
     }
 }

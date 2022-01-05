@@ -12,10 +12,7 @@
 package dev.unexist.showcase.todo.adapter;
 
 import dev.unexist.showcase.todo.domain.todo.Todo;
-import dev.unexist.showcase.todo.domain.todo.TodoBase;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.StatusCode;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -26,18 +23,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import java.net.URI;
 import java.util.Optional;
 
 @Path("/todo")
@@ -46,52 +38,6 @@ public class TodoResource {
 
     @Inject
     TodoService todoService;
-
-    @Inject
-    TodoSource todoSource;
-
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create new todo")
-    @Tag(name = "Todo")
-    @APIResponses({
-            @APIResponse(responseCode = "201", description = "Todo created"),
-            @APIResponse(responseCode = "406", description = "Bad data"),
-            @APIResponse(responseCode = "500", description = "Server error")
-    })
-    public Response create(TodoBase todoBase, @Context UriInfo uriInfo) {
-        Response.ResponseBuilder response;
-
-        LOGGER.info("Received post request");
-
-        Span.current()
-                .updateName("Received post request");
-
-        Optional<Todo> todo = this.todoService.create(todoBase);
-
-        if (todo.isPresent()) {
-            Span.current()
-                    .setStatus(StatusCode.OK, todo.get().getId());
-
-            this.todoSource.send(todo.get());
-
-            URI uri = uriInfo.getAbsolutePathBuilder()
-                    .path(todo.get().getId())
-                    .build();
-
-            response = Response.created(uri);
-        } else {
-            LOGGER.error("Error creating todo");
-
-            Span.current()
-                    .setStatus(StatusCode.ERROR, "Error creating todo");
-
-            response = Response.status(Response.Status.NOT_ACCEPTABLE);
-        }
-
-        return response.build();
-    }
 
     @GET
     @Path("{id}")

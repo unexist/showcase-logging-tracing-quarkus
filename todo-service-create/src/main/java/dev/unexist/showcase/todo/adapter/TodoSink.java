@@ -12,7 +12,7 @@ package dev.unexist.showcase.todo.adapter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.unexist.showcase.todo.domain.todo.TodoBase;
+import dev.unexist.showcase.todo.domain.todo.Todo;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -37,23 +37,24 @@ public class TodoSink {
     @Inject
     TodoService todoService;
 
-    @Incoming("todo-checked")
-    public CompletionStage<Void> consumeTodos(IncomingKafkaRecord<Integer, String> record) {
-        LOGGER.info("Received message from todo-checked");
-        LOGGER.info("Payload={}", record.getPayload());
+    @Incoming("todo-stored")
+    public CompletionStage<Void> consume(IncomingKafkaRecord<String, String> record) {
+        LOGGER.info("Received message from todo-stored: payload={}", record.getPayload());
 
-        TracingMetadata.fromMessage(record).get().getCurrentContext().makeCurrent();
+        TracingMetadata.fromMessage(record)
+                .ifPresent(meta -> meta.getCurrentContext().makeCurrent());
 
         Span.current()
-                .updateName("Received message from todo-checked");
+                .updateName("Received message from todo-stored");
 
         try {
-            TodoBase todoBase = this.mapper.readValue(record.getPayload(), TodoBase.class);
+            Todo todo = this.mapper.readValue(record.getPayload(), Todo.class);
 
-            Span.current()
-                    .addEvent("Stored new todo", Attributes.of(
-                            AttributeKey.stringKey("id"),
-                            String.valueOf(this.todoService.create(todoBase))));
+            if (this.todoService.update(todo)) {
+                Span.current()
+                        .addEvent("Updated todo", Attributes.of(
+                                AttributeKey.stringKey("id"), todo.getId()));
+            }
         } catch (JsonProcessingException e) {
             LOGGER.error("Error handling JSON", e);
 
