@@ -192,11 +192,16 @@ service-check:
 services: service-create service-check
 
 # Tools
-rest-post:
+rest-create:
 	@echo $$JSON_TODO | bash
 
 rest-list:
-	@curl -X 'GET' 'http://localhost:8080/todo' -H 'accept: */*' | jq .
+	@curl -X 'GET' 'http://localhost:8090/todo' -H 'accept: */*' | jq .
+
+rest-status:
+	@curl -X 'GET' 'http://localhost:8080/todo/$(id)' -H 'accept: */*' | jq .
+	@curl -X 'GET' 'http://localhost:8085/todo/$(id)' -H 'accept: */*' | jq .
+	@curl -X 'GET' 'http://localhost:8090/todo/$(id)' -H 'accept: */*' | jq .
 
 gelf-udp:
 	@echo $$GELF_TEST_UDP | bash
