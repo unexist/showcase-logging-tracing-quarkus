@@ -12,7 +12,7 @@
 package dev.unexist.showcase.todo.domain.todo;
 
 public class Todo extends TodoBase {
-    private int id;
+    private String id;
 
     /**
      * Constructor
@@ -53,7 +53,7 @@ public class Todo extends TodoBase {
      * @return Id of the entry
      **/
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
@@ -63,7 +63,7 @@ public class Todo extends TodoBase {
      * @param  id  Id of the entry
      **/
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 }
