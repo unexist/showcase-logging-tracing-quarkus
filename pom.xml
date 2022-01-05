@@ -15,6 +15,7 @@
 
     <modules>
         <module>todo-service-create</module>
-        <module>todo-service-check</module>
+        <module>todo-service-verify</module>
+        <module>todo-service-store</module>
     </modules>
 </project>
