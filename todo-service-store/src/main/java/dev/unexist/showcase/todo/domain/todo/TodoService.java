@@ -16,6 +16,8 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.extension.annotations.WithSpan;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -23,6 +25,7 @@ import java.util.Optional;
 
 @ApplicationScoped
 public class TodoService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TodoService.class);
 
     @Inject
     TodoRepository todoRepository;
@@ -40,13 +43,19 @@ public class TodoService {
         boolean ret = false;
 
         if (this.todoRepository.add(todo)) {
+            LOGGER.info("Stored todo: id={}", todo.getId());
+
             Span.current()
                     .addEvent("Stored todo", Attributes.of(
                             AttributeKey.stringKey("id"), todo.getId()))
                     .setStatus(StatusCode.OK);
+
+            ret = true;
         } else {
+            LOGGER.error("Cannot store todo: id={}", todo.getId());
+
             Span.current()
-                    .setStatus(StatusCode.ERROR);
+                    .setStatus(StatusCode.ERROR, "Cannot store todo");
         }
 
         return ret;

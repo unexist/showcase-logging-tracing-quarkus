@@ -16,6 +16,8 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.extension.annotations.WithSpan;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -26,6 +28,7 @@ import static org.awaitility.Awaitility.await;
 
 @ApplicationScoped
 public class TodoService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TodoService.class);
 
     @Inject
     TodoRepository todoRepository;
@@ -38,16 +41,19 @@ public class TodoService {
      * @return Either {@code true} if the due date is after the start date; {@code false}
      **/
 
-    @WithSpan("Check todo")
+    @WithSpan("Verify todo")
     public boolean verify(Todo todo) {
-        await().between(Duration.ofSeconds(1), Duration.ofSeconds(10));
-
         boolean result = todo.getDueDate().getDue().isAfter(todo.getDueDate().getStart());
 
+        todo.setVerified(true);
+
+        await().between(Duration.ofSeconds(1), Duration.ofSeconds(10));
+
+        LOGGER.info("Verified todo: id={}, done={}", todo.getId(), result);
+
         Span.current()
-                .updateName("Checked todo")
-                .addEvent("Checked todo", Attributes.of(
-                        AttributeKey.stringKey("valid"), String.valueOf(result)));
+                .addEvent("Verified todo", Attributes.of(
+                        AttributeKey.stringKey("done"), String.valueOf(result)));
 
         return result;
     }
@@ -65,13 +71,19 @@ public class TodoService {
         boolean ret = false;
 
         if (this.todoRepository.update(todo)) {
+            LOGGER.info("Updated todo: id={}", todo.getId());
+
             Span.current()
                     .addEvent("Updated todo", Attributes.of(
                             AttributeKey.stringKey("id"), todo.getId()))
                     .setStatus(StatusCode.OK);
+
+            ret = true;
         } else {
+            LOGGER.error("Cannot update todo: id={}", todo.getId());
+
             Span.current()
-                    .setStatus(StatusCode.ERROR, "Todo not found");
+                    .setStatus(StatusCode.ERROR, "Cannot update todo");
         }
 
         return ret;
