@@ -49,6 +49,10 @@ public class ListTodoRepository implements TodoRepository {
                 .map(t -> t.getId().equals(todo.getId()) ? todo : t)
                 .collect(toList());
 
+        if (this.list.stream().noneMatch(t -> t.getId().equals(todo.getId()))) {
+            this.list.add(todo);
+        }
+
         return this.list.stream().anyMatch(t -> t.getId().equals(todo.getId()));
     }
 
