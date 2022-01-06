@@ -37,6 +37,9 @@ public class TodoSink {
     @Inject
     TodoService todoService;
 
+    @Inject
+    TodoSource todoSource;
+
     @Incoming("todo-created")
     public CompletionStage<Void> consumeCreated(IncomingKafkaRecord<String, String> record) {
         LOGGER.info("Received message from todo-created: payload={}", record.getPayload());
@@ -50,11 +53,13 @@ public class TodoSink {
         try {
             Todo todo = this.mapper.readValue(record.getPayload(), Todo.class);
 
-            if (this.todoService.verify(todo)) {
-                Span.current()
-                        .addEvent("Verified todo", Attributes.of(
-                                AttributeKey.stringKey("id"), todo.getId()));
-            }
+            Span.current()
+                    .addEvent("Verified todo", Attributes.of(
+                            AttributeKey.stringKey("id"), todo.getId(),
+                            AttributeKey.stringKey("done"),
+                                String.valueOf(this.todoService.verify(todo))));
+
+            this.todoSource.send(todo);
         } catch (JsonProcessingException e) {
             LOGGER.error("Error handling JSON", e);
 

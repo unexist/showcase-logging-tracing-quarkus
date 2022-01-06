@@ -18,6 +18,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.Tracer;
 import io.smallrye.reactive.messaging.TracingMetadata;
 import io.smallrye.reactive.messaging.kafka.IncomingKafkaRecord;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
@@ -37,33 +38,33 @@ public class TodoSink {
     @Inject
     TodoService todoService;
 
+    @Inject
+    Tracer tracer;
+
     @Incoming("todo-stored")
-    public CompletionStage<Void> consume(IncomingKafkaRecord<String, String> record) {
+    public CompletionStage<Void> consumeStored(IncomingKafkaRecord<String, String> record) {
         LOGGER.info("Received message from todo-stored: payload={}", record.getPayload());
 
         TracingMetadata.fromMessage(record)
                 .ifPresent(meta -> meta.getCurrentContext().makeCurrent());
 
-        Span.current()
-                .updateName("Received message from todo-stored");
+        Span span = tracer.spanBuilder("Received message from todo-stored").startSpan();
 
         try {
             Todo todo = this.mapper.readValue(record.getPayload(), Todo.class);
 
             if (this.todoService.update(todo)) {
-                Span.current()
-                        .addEvent("Updated todo", Attributes.of(
-                                AttributeKey.stringKey("id"), todo.getId()));
+                span.addEvent("Updated todo", Attributes.of(
+                        AttributeKey.stringKey("id"), todo.getId()));
             }
         } catch (JsonProcessingException e) {
             LOGGER.error("Error handling JSON", e);
 
-            Span.current()
-                    .recordException(e)
+            span.recordException(e)
                     .setStatus(StatusCode.ERROR, "Error handling JSON");
         }
 
-        Span.current().end();
+        span.end();
 
         return record.ack();
     }

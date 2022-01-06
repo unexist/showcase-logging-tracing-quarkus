@@ -45,7 +45,7 @@ public class TodoSource {
      * @param  todo  A {@link Todo} to convert and send
      **/
 
-    @WithSpan("Sent message to todo-created")
+    @WithSpan("Sent message to todo-stored")
     public void send(Todo todo) {
         LOGGER.info("Sent message to todo-stored");
 
