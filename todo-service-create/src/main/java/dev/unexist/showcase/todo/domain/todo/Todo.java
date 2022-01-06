@@ -11,6 +11,8 @@
 
 package dev.unexist.showcase.todo.domain.todo;
 
+import com.tersesystems.echopraxia.Field;
+
 public class Todo extends TodoBase {
     private String id;
 
@@ -66,5 +68,26 @@ public class Todo extends TodoBase {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public static class FieldBuilder implements Field.Builder {
+
+        /**
+         * Field builder for {@link Todo}
+         *
+         * @param  name  Name of the log key
+         * @param  todo  A {@link Todo} entry to log
+         *
+         * @return Logging object
+         **/
+
+        public Field todo(String name, Todo todo) {
+            return object(
+                    name,
+                    string("id", todo.getId()),
+                    string("title", todo.getTitle()),
+                    string("description", todo.getDescription())
+            );
+        }
     }
 }
