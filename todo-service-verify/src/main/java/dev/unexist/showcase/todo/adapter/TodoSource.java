@@ -11,8 +11,8 @@
 
 package dev.unexist.showcase.todo.adapter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tersesystems.echopraxia.Logger;
+import com.tersesystems.echopraxia.LoggerFactory;
 import dev.unexist.showcase.todo.domain.todo.Todo;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
@@ -23,21 +23,19 @@ import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Message;
 import org.eclipse.microprofile.reactive.messaging.Metadata;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.List;
 
 @ApplicationScoped
 public class TodoSource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TodoSource.class);
-
-    private final ObjectMapper mapper = new ObjectMapper();
+    private static final Logger<Todo.FieldBuilder> LOGGER = LoggerFactory.getLogger(TodoSource.class)
+            .withFieldBuilder(Todo.FieldBuilder.class);
 
     @Inject
     @Channel("todo-verified")
-    Emitter<String> emitter;
+    Emitter<Todo> emitter;
 
     /**
      * Send {@link Todo} to topic
@@ -47,25 +45,16 @@ public class TodoSource {
 
     @WithSpan("Sent message to todo-verified")
     public void send(Todo todo) {
-        LOGGER.info("Sent message to todo-verified");
+        LOGGER.info("Sent message to todo-verified: {}",
+                fb -> List.of(fb.todo("todo", todo)));
 
-        try {
-            String json = this.mapper.writeValueAsString(todo);
+        Message<Todo> outMessage = Message.of(todo)
+                .withMetadata(Metadata.of(
+                        TracingMetadata.withPrevious(Context.current())
+                                .withSpan(Span.current())));
 
-            Message<String> outMessage = Message.of(json)
-                    .withMetadata(Metadata.of(
-                            TracingMetadata.withPrevious(Context.current())
-                                    .withSpan(Span.current())));
+        this.emitter.send(outMessage);
 
-            this.emitter.send(outMessage);
-
-            Span.current().setStatus(StatusCode.OK);
-        } catch (JsonProcessingException e) {
-            LOGGER.error("Error handling JSON", e);
-
-            Span.current()
-                    .recordException(e)
-                    .setStatus(StatusCode.ERROR, "Error handling JSON");
-        }
+        Span.current().setStatus(StatusCode.OK);
     }
 }

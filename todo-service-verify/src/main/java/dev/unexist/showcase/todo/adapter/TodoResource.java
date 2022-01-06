@@ -11,6 +11,8 @@
 
 package dev.unexist.showcase.todo.adapter;
 
+import com.tersesystems.echopraxia.Logger;
+import com.tersesystems.echopraxia.LoggerFactory;
 import dev.unexist.showcase.todo.domain.todo.Todo;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
 import io.opentelemetry.api.trace.Span;
@@ -20,8 +22,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -35,7 +35,8 @@ import java.util.Optional;
 
 @Path("/todo")
 public class TodoResource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TodoResource.class);
+    private static final Logger<Todo.FieldBuilder> LOGGER = LoggerFactory.getLogger(TodoResource.class)
+            .withFieldBuilder(Todo.FieldBuilder.class);
 
     @Inject
     TodoService todoService;

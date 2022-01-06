@@ -10,32 +10,30 @@
 
 package dev.unexist.showcase.todo.adapter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tersesystems.echopraxia.Logger;
+import com.tersesystems.echopraxia.LoggerFactory;
 import dev.unexist.showcase.todo.domain.todo.Todo;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Scope;
 import io.smallrye.reactive.messaging.TracingMetadata;
 import io.smallrye.reactive.messaging.kafka.IncomingKafkaRecord;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
 @ApplicationScoped
 public class TodoSink {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TodoSink.class);
-    private final ObjectMapper mapper = new ObjectMapper();
+    private static final Logger<Todo.FieldBuilder> LOGGER = LoggerFactory.getLogger(TodoSink.class)
+            .withFieldBuilder(Todo.FieldBuilder.class);
 
     @ConfigProperty(name = "quarkus.application.name")
     String appName;
@@ -47,8 +45,9 @@ public class TodoSink {
     TodoSource todoSource;
 
     @Incoming("todo-verified")
-    public CompletionStage<Void> consumeVerified(IncomingKafkaRecord<String, String> record) {
-        LOGGER.info("Received message from todo-verified: payload={}", record.getPayload());
+    public CompletionStage<Void> consumeVerified(IncomingKafkaRecord<String, Todo> record) {
+        LOGGER.info("Received message from todo-verified: {}",
+                fb -> List.of(fb.todo("payload", record.getPayload())));
 
         Optional<TracingMetadata> metadata = TracingMetadata.fromMessage(record);
 
@@ -57,26 +56,17 @@ public class TodoSink {
                 Span span = GlobalOpenTelemetry.getTracer(appName)
                         .spanBuilder("Received message from todo-verified").startSpan();
 
-                try {
-                    Todo todo = this.mapper.readValue(record.getPayload(), Todo.class);
+                if (this.todoService.store(record.getPayload())) {
+                    LOGGER.info("Stored todo: {}",
+                            fb -> List.of(fb.todo("payload", record.getPayload())));
 
-                    if (this.todoService.store(todo)) {
-                        LOGGER.info("Stored todo: id={}", todo.getId());
+                    span.addEvent("Stored todo", Attributes.of(
+                            AttributeKey.stringKey("id"), record.getPayload().getId()));
 
-                        span.addEvent("Stored todo", Attributes.of(
-                                AttributeKey.stringKey("id"), todo.getId()));
-
-                        this.todoSource.send(todo);
-                    }
-                } catch (JsonProcessingException e) {
-                    LOGGER.error("Error handling JSON", e);
-
-                    Span.current()
-                            .recordException(e)
-                            .setStatus(StatusCode.ERROR, "Error handling JSON");
+                    this.todoSource.send(record.getPayload());
                 }
 
-                Span.current().end();
+                span.end();
             }
         }
 

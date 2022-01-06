@@ -11,6 +11,8 @@
 
 package dev.unexist.showcase.todo.adapter;
 
+import com.tersesystems.echopraxia.Logger;
+import com.tersesystems.echopraxia.LoggerFactory;
 import dev.unexist.showcase.todo.domain.todo.Todo;
 import dev.unexist.showcase.todo.domain.todo.TodoBase;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
@@ -22,8 +24,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -38,11 +38,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 
 @Path("/todo")
 public class TodoResource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TodoResource.class);
+    private static final Logger<Todo.FieldBuilder> LOGGER = LoggerFactory.getLogger(TodoResource.class)
+            .withFieldBuilder(Todo.FieldBuilder.class);
 
     @Inject
     TodoService todoService;
@@ -75,6 +77,9 @@ public class TodoResource {
                     .setStatus(StatusCode.OK, todo.get().getId());
 
             this.todoSource.send(todo.get());
+
+            LOGGER.info("Created todo: {}",
+                    fb -> List.of(fb.todo("todo", todo.get())));
 
             URI uri = uriInfo.getAbsolutePathBuilder()
                     .path(todo.get().getId())
