@@ -27,6 +27,7 @@ public class TodoBase {
     private String description;
 
     private Boolean done;
+    private Boolean verified;
 
     @NotNull
     private DueDate dueDate;
@@ -98,7 +99,7 @@ public class TodoBase {
      **/
 
     public Boolean getDone() {
-        return done;
+        return this.done;
     }
 
     /**
@@ -109,6 +110,26 @@ public class TodoBase {
 
     public void setDone(Boolean done) {
         this.done = done;
+    }
+
+    /**
+     * Get verified state of entry
+     *
+     * @return Verfied state of the entry
+     **/
+
+    public Boolean getVerified() {
+        return this.verified;
+    }
+
+    /**
+     * Set verified state of entry
+     *
+     * @param  verified  Verified state of the entry
+     **/
+
+    public void setVerified(Boolean verified) {
+        this.verified = verified;
     }
 
     /**

@@ -41,6 +41,7 @@ public class Todo extends TodoBase {
         this.setTitle(base.getTitle());
         this.setDescription(base.getDescription());
         this.setDone(base.getDone());
+        this.setVerified(base.getVerified());
 
         if (null != base.getDueDate()) {
             this.setDueDate(base.getDueDate());
