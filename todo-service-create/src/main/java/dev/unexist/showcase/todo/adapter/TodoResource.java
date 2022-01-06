@@ -109,6 +109,11 @@ public class TodoResource {
 
         Response.ResponseBuilder response;
 
+        LOGGER.info("Received get request");
+
+        Span.current()
+                .updateName("Received get request");
+
         if (result.isPresent()) {
             response = Response.ok(Entity.json(result.get()));
         } else {

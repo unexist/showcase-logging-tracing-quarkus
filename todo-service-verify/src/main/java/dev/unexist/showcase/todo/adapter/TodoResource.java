@@ -13,6 +13,7 @@ package dev.unexist.showcase.todo.adapter;
 
 import dev.unexist.showcase.todo.domain.todo.Todo;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
+import io.opentelemetry.api.trace.Span;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -54,6 +55,11 @@ public class TodoResource {
         Optional<Todo> result = this.todoService.findById(id);
 
         Response.ResponseBuilder response;
+
+        LOGGER.info("Received get request");
+
+        Span.current()
+                .updateName("Received get request");
 
         if (result.isPresent()) {
             response = Response.ok(Entity.json(result.get()));
