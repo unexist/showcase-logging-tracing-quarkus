@@ -25,3 +25,4 @@ This project holds a showcase for various kafka related things.
 - https://issueexplorer.com/issue/containers/podman-machine-cni/8
 - https://opentelemetry.lightstep.com/java/
 - https://github.com/quarkusio/quarkus/blob/main/extensions/logging-gelf/runtime/src/main/java/io/quarkus/logging/gelf/GelfConfig.java
+- https://github.com/tersesystems/echopraxia
