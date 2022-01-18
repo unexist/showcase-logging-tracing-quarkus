@@ -22,7 +22,9 @@ import org.slf4j.LoggerFactory;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.awaitility.Awaitility.await;
 
@@ -30,32 +32,38 @@ import static org.awaitility.Awaitility.await;
 public class TodoService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TodoService.class);
 
+    private static final List<String> BADWORDS = List.of("badword");
+
     @Inject
     TodoRepository todoRepository;
 
     /**
-     * Check whether the due date is after the start date of the given {@link Todo}
+     * Check whether {@link Todo} contains any badwords
      *
      * @param  todo  A {@link Todo} entry
      *
-     * @return Either {@code true} if the due date is after the start date; {@code false}
+     * @return Either {@code true} if a badword is found; otherwise {@code false}
      **/
 
     @WithSpan("Verify todo")
     public boolean verify(Todo todo) {
-        boolean result = todo.getDueDate().getDue().isAfter(todo.getDueDate().getStart());
-
-        todo.setVerified(true);
-
         await().between(Duration.ofSeconds(1), Duration.ofSeconds(10));
 
-        LOGGER.info("Verified todo: id={}, done={}", todo.getId(), result);
+        boolean invalid = Stream.of(todo.getTitle(), todo.getDescription())
+                        .anyMatch(part -> BADWORDS.stream()
+                                .anyMatch(part::contains));
+
+        LOGGER.info("Verified todo: id={}, invalid={}", todo.getId(), invalid);
 
         Span.current()
                 .addEvent("Verified todo", Attributes.of(
-                        AttributeKey.stringKey("done"), String.valueOf(result)));
+                        AttributeKey.stringKey("id"), todo.getId(),
+                        AttributeKey.stringKey("invalid"), String.valueOf(invalid)))
+                .setStatus(invalid ? StatusCode.ERROR : StatusCode.OK);
 
-        return result;
+        todo.setVerified(true);
+
+        return invalid;
     }
 
     /**

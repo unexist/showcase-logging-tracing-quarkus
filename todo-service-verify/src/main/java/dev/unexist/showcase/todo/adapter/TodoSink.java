@@ -56,10 +56,10 @@ public class TodoSink {
                 Span span = GlobalOpenTelemetry.getTracer(appName)
                         .spanBuilder("Received message from todo-created").startSpan();
 
+                this.todoService.verify(record.getPayload());
+
                 span.addEvent("Verified todo", Attributes.of(
-                        AttributeKey.stringKey("id"), record.getPayload().getId(),
-                        AttributeKey.stringKey("done"),
-                        String.valueOf(this.todoService.verify(record.getPayload()))));
+                        AttributeKey.stringKey("id"), record.getPayload().getId()));
 
                 this.todoSource.send(record.getPayload());
 
