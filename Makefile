@@ -1,4 +1,4 @@
-define JSON_TODO
+define JSON_TODO_OK
 curl -X 'POST' \
   'http://localhost:8080/todo' \
   -H 'accept: */*' \
@@ -13,7 +13,24 @@ curl -X 'POST' \
   "title": "string"
 }'
 endef
-export JSON_TODO
+export JSON_TODO_OK
+
+define JSON_TODO_ERR
+curl -X 'POST' \
+  'http://localhost:8080/todo' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "description": "string",
+  "done": true,
+  "dueDate": {
+    "due": "2021-05-07",
+    "start": "2021-05-07"
+  },
+  "title": "badwordbadwordbadword"
+}'
+endef
+export JSON_TODO_ERR
 
 # timestamp: $(date +'%s.%N')
 define GELF_TEST_UDP
@@ -192,8 +209,11 @@ service-check:
 services: service-create service-check
 
 # Tools
-rest-create:
-	@echo $$JSON_TODO | bash
+rest-create-ok:
+	@echo $$JSON_TODO_OK | bash
+
+rest-create-err:
+	@echo $$JSON_TODO_ERR | bash
 
 rest-list:
 	@curl -X 'GET' 'http://localhost:8090/todo' -H 'accept: */*' | jq .
