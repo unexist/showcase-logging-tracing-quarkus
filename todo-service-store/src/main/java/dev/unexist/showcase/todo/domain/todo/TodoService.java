@@ -11,21 +11,23 @@
 
 package dev.unexist.showcase.todo.domain.todo;
 
+import com.tersesystems.echopraxia.Logger;
+import com.tersesystems.echopraxia.LoggerFactory;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.extension.annotations.WithSpan;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
 public class TodoService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TodoService.class);
+    private static final Logger<Todo.FieldBuilder> LOGGER = LoggerFactory.getLogger(TodoService.class)
+            .withFieldBuilder(Todo.FieldBuilder.class);
 
     @Inject
     TodoRepository todoRepository;
@@ -43,7 +45,8 @@ public class TodoService {
         boolean ret = false;
 
         if (this.todoRepository.add(todo)) {
-            LOGGER.info("Stored todo: id={}", todo.getId());
+            LOGGER.info("Stored todo: {}",
+                    fb -> List.of(fb.todo("todo", todo)));
 
             Span.current()
                     .addEvent("Stored todo", Attributes.of(
@@ -52,7 +55,8 @@ public class TodoService {
 
             ret = true;
         } else {
-            LOGGER.error("Cannot store todo: id={}", todo.getId());
+            LOGGER.error("Cannot store todo: {}",
+                    fb -> List.of(fb.todo("todo", todo)));
 
             Span.current()
                     .setStatus(StatusCode.ERROR, "Cannot store todo");

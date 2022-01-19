@@ -52,7 +52,7 @@ public class TodoService {
 
         await().between(Duration.ofSeconds(1), Duration.ofSeconds(10));
 
-        LOGGER.info("Created todo: {}",
+        LOGGER.info("Added it to todo: {}",
                 fb -> List.of(fb.todo("todo", todo)));
 
         Span.current()
