@@ -21,7 +21,6 @@ import io.opentelemetry.extension.annotations.WithSpan;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -46,7 +45,7 @@ public class TodoService {
 
         if (this.todoRepository.add(todo)) {
             LOGGER.info("Stored todo: {}",
-                    fb -> List.of(fb.todo("todo", todo)));
+                    fb -> fb.onlyTodo("todo", todo));
 
             Span.current()
                     .addEvent("Stored todo", Attributes.of(
@@ -56,7 +55,7 @@ public class TodoService {
             ret = true;
         } else {
             LOGGER.error("Cannot store todo: {}",
-                    fb -> List.of(fb.todo("todo", todo)));
+                    fb -> fb.onlyTodo("todo", todo));
 
             Span.current()
                     .setStatus(StatusCode.ERROR, "Cannot store todo");

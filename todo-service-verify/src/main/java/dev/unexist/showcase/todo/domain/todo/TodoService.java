@@ -83,7 +83,7 @@ public class TodoService {
 
         if (this.todoRepository.update(todo)) {
             LOGGER.info("Updated todo: {}",
-                    fb -> List.of(fb.todo("todo", todo)));
+                    fb -> fb.onlyTodo("todo", todo));
 
             Span.current()
                     .addEvent("Updated todo", Attributes.of(

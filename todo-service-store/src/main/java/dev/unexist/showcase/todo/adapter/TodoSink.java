@@ -26,7 +26,6 @@ import org.eclipse.microprofile.reactive.messaging.Incoming;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
@@ -47,7 +46,7 @@ public class TodoSink {
     @Incoming("todo-verified")
     public CompletionStage<Void> consumeVerified(IncomingKafkaRecord<String, Todo> record) {
         LOGGER.info("Received message from todo-verified: {}",
-                fb -> List.of(fb.todo("payload", record.getPayload())));
+                fb -> fb.onlyTodo("payload", record.getPayload()));
 
         Optional<TracingMetadata> metadata = TracingMetadata.fromMessage(record);
 
@@ -58,7 +57,7 @@ public class TodoSink {
 
                 if (this.todoService.store(record.getPayload())) {
                     LOGGER.info("Stored todo: {}",
-                            fb -> List.of(fb.todo("payload", record.getPayload())));
+                            fb -> fb.onlyTodo("payload", record.getPayload()));
 
                     span.addEvent("Stored todo", Attributes.of(
                             AttributeKey.stringKey("id"), record.getPayload().getId()));

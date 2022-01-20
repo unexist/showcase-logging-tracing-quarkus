@@ -26,7 +26,6 @@ import org.eclipse.microprofile.reactive.messaging.Metadata;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.List;
 
 @ApplicationScoped
 public class TodoSource {
@@ -46,7 +45,7 @@ public class TodoSource {
     @WithSpan("Sent message to todo-stored")
     public void send(Todo todo) {
         LOGGER.info("Sent message to todo-stored: {}",
-            fb -> List.of(fb.todo("todo", todo)));
+            fb -> fb.onlyTodo("todo", todo));
 
         Message<Todo> outMessage = Message.of(todo)
                 .withMetadata(Metadata.of(

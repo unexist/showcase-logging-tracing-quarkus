@@ -22,7 +22,6 @@ import io.opentelemetry.extension.annotations.WithSpan;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -53,7 +52,7 @@ public class TodoService {
         await().between(Duration.ofSeconds(1), Duration.ofSeconds(10));
 
         LOGGER.info("Added id to todo: {}",
-                fb -> List.of(fb.todo("todo", todo)));
+                fb -> fb.onlyTodo("todo", todo));
 
         Span.current()
                 .addEvent("Added id to todo", Attributes.of(
@@ -77,7 +76,7 @@ public class TodoService {
 
         if (this.todoRepository.update(todo)) {
             LOGGER.info("Updated todo: {}",
-                    fb -> List.of(fb.todo("todo", todo)));
+                    fb -> fb.onlyTodo("todo", todo));
 
             Span.current()
                     .addEvent("Updated todo", Attributes.of(
@@ -87,7 +86,7 @@ public class TodoService {
             ret = true;
         } else {
             LOGGER.error("Cannot update todo: {}",
-                    fb -> List.of(fb.todo("todo", todo)));
+                    fb -> fb.onlyTodo("todo", todo));
 
             Span.current()
                     .setStatus(StatusCode.ERROR, "Cannot update todo");
