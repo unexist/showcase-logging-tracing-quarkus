@@ -13,6 +13,8 @@ package dev.unexist.showcase.todo.domain.todo;
 
 import com.tersesystems.echopraxia.Field;
 
+import java.util.List;
+
 public class Todo extends TodoBase {
     private String id;
 
@@ -78,7 +80,7 @@ public class Todo extends TodoBase {
          * @param  name  Name of the log key
          * @param  todo  A {@link Todo} entry to log
          *
-         * @return Logging object
+         * @return Logging {@link Field}
          **/
 
         public Field todo(String name, Todo todo) {
@@ -88,6 +90,19 @@ public class Todo extends TodoBase {
                     string("title", todo.getTitle()),
                     string("description", todo.getDescription())
             );
+        }
+
+        /**
+         * Convenience field builder for {@link Todo}
+         *
+         * @param  name  Name of the log key
+         * @param  todo  A {@link Todo} entry to log
+         *
+         * @return Logging list with only one {@link Field}
+         **/
+
+        public List<Field> onlyTodo(String name, Todo todo) {
+            return List.of(todo(name, todo));
         }
     }
 }
