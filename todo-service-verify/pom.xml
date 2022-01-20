@@ -15,7 +15,6 @@
 
     <properties>
         <awaitility.version>4.1.1</awaitility.version>
-        <echopraxia.version>1.0.0</echopraxia.version>
     </properties>
 
     <dependencies>
@@ -48,11 +47,6 @@
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-extension-trace-propagators</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.tersesystems.echopraxia</groupId>
-            <artifactId>logstash</artifactId>
-            <version>${echopraxia.version}</version>
         </dependency>
 
         <!-- Testing -->
