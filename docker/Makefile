@@ -36,7 +36,7 @@ export GELF_TEST_TCP
 # Docker
 docker-compose:
 	@docker-compose -f docker/docker-compose.yaml \
-		-p observability up
+		-p logtrace up
 
 # Gelf
 gelf-udp:
