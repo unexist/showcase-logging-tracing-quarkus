@@ -35,7 +35,7 @@ services:
 
   # Install Fluentd
   fluentd:
-    build: ./fluent
+    build: ./fluentd
     ports:
       - "12201:12201"
     volumes:
