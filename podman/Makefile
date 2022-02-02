@@ -39,13 +39,13 @@ PODNAME := logtrace
 pd-compose:
 	@podman-compose -f docker/docker-compose.yaml -p observability up
 
-pd-machine-create:
+pd-machine-init:
 	@podman machine init --memory=8192 --cpus=2 --disk-size=20
 
 pd-machine-rm:
 	@podman machine rm
 
-pd-machine-create: pd-machine-rm pd-machine-create
+pd-machine-recreate: pd-machine-rm pd-machine-init
 
 pd-pod-create:
 	@podman pod create -n $(PODNAME) --network bridge \
@@ -61,13 +61,13 @@ pd-pod-rm:
 
 pd-pod-recreate: pd-pod-rm pd-pod-create
 
-pd-build-collector:
+pd-collector-build:
 	@podman build --format docker -t custom-collector -f podman/collector/Dockerfile
 
-pd-build-fluentd:
+pd-fluentd-build:
 	@podman build --format docker -t custom-fluentd -f podman/fluentd/Dockerfile
 
-pd-build: pd-build-collector pd-build-fluentd
+pd-images-build: pd-collector-build pd-fluentd-build
 
 pd-collector:
 	# Install Collector
@@ -148,7 +148,9 @@ pd-redpanda:
 
 	@podman run -dit --name redpanda --pod=$(PODNAME) vectorized/redpanda
 
-pd-services: pd-elastic pd-collector pd-jaeger pd-kibana pd-fluentd pd-redpanda
+pd-init: pd-machine-init pd-pod-create pd-images-build
+
+pd-start: pd-elastic pd-collector pd-jaeger pd-kibana pd-fluentd pd-redpanda
 
 # Gelf
 gelf-udp:
