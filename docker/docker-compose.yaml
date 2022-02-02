@@ -5,7 +5,7 @@ services:
   jaeger:
     image: jaegertracing/all-in-one:latest
     ports:
-      - "6831:6831/udp"
+      - "6831:6831"
       - "16686:16686"
       - "14268"
       - "14250"
@@ -15,7 +15,7 @@ services:
     image: otel/opentelemetry-collector:latest
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - ./collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
       - "13133:13133" # Health_check extension
       - "4317:4317"   # OTLP gRPC receiver
@@ -25,7 +25,7 @@ services:
 
   # Install Elastic
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.14.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.0
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -35,9 +35,9 @@ services:
 
   # Install Fluentd
   fluentd:
-    build: .
+    build: ./fluent
     ports:
-      - "12201:12201/udp"
+      - "12201:12201"
     volumes:
       - source: ./fluentd
         target: /fluentd/etc
@@ -47,7 +47,7 @@ services:
 
   # Install Kibana
   kibana:
-    image: docker.elastic.co/kibana/kibana:7.14.2
+    image: docker.elastic.co/kibana/kibana:7.16.0
     ports:
       - "5601:5601"
     depends_on:
