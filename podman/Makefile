@@ -42,10 +42,13 @@ pd-compose:
 pd-machine-init:
 	@podman machine init --memory=8192 --cpus=2 --disk-size=20
 
+pd-machine-start:
+	@podman machine start
+
 pd-machine-rm:
 	@podman machine rm
 
-pd-machine-recreate: pd-machine-rm pd-machine-init
+pd-machine-recreate: pd-machine-rm pd-machine-init pd-machine-start
 
 pd-pod-create:
 	@podman pod create -n $(PODNAME) --network bridge \
@@ -148,7 +151,7 @@ pd-redpanda:
 
 	@podman run -dit --name redpanda --pod=$(PODNAME) vectorized/redpanda
 
-pd-init: pd-machine-init pd-pod-create pd-images-build
+pd-init: pd-machine-init pd-machine-start pd-pod-create pd-images-build
 
 pd-start: pd-elastic pd-collector pd-jaeger pd-kibana pd-fluentd pd-redpanda
 
