@@ -15,7 +15,7 @@
 
     <properties>
         <awaitility.version>4.1.1</awaitility.version>
-        <echopraxia.version>1.0.0</echopraxia.version>
+        <quarkus-logging-json.version>1.1.1</quarkus-logging-json.version>
     </properties>
 
     <dependencies>
@@ -33,20 +33,21 @@
             <artifactId>quarkus-logging-gelf</artifactId>
         </dependency>
         <!--<dependency>
-            <groupId>io.quarkus</groupId>
+            <groupId>io.quarkiverse.loggingjson</groupId>
             <artifactId>quarkus-logging-json</artifactId>
+            <version>${quarkus-logging-json.version}</version>
         </dependency>-->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>7.0.1</version>
+        </dependency>
 
         <!-- Tools -->
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
             <version>${awaitility.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.tersesystems.echopraxia</groupId>
-            <artifactId>logstash</artifactId>
-            <version>${echopraxia.version}</version>
         </dependency>
 
         <!-- Opentelemetry -->
