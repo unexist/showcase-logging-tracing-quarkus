@@ -16,6 +16,8 @@ import com.tersesystems.echopraxia.LoggerFactory;
 import dev.unexist.showcase.todo.domain.todo.Todo;
 import dev.unexist.showcase.todo.domain.todo.TodoBase;
 import dev.unexist.showcase.todo.domain.todo.TodoService;
+import dev.unexist.showcase.todo.infrastructure.interceptor.Timed;
+import dev.unexist.showcase.todo.infrastructure.interceptor.Traced;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -62,6 +64,8 @@ public class TodoResource {
             @APIResponse(responseCode = "406", description = "Bad data"),
             @APIResponse(responseCode = "500", description = "Server error")
     })
+    @Traced
+    @Timed
     public Response create(TodoBase todoBase, @Context UriInfo uriInfo) {
         Response.ResponseBuilder response;
 
