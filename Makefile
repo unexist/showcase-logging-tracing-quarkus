@@ -75,3 +75,6 @@ kat-listen:
 
 kat-test:
 	kcat -t todo_created -b localhost:9092 -P
+
+kt-listen:
+	kt consume -topic todo_created
