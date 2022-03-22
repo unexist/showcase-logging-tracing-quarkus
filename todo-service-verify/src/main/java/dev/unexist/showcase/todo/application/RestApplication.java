@@ -1,5 +1,5 @@
 /**
- * @package Quarkus-Logging-Tracing-Quarkus
+ * @package Showcase-Logging-Tracing-Quarkus
  *
  * @file Todo application
  * @copyright 2021-2022 Christoph Kappel <christoph@unexist.dev>

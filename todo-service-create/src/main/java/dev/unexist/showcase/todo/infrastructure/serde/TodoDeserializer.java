@@ -1,5 +1,5 @@
 /**
- * @package Quarkus-Logging-Tracing-Quarkus
+ * @package Showcase-Logging-Tracing-Quarkus
  *
  * @file Todo deserializer
  * @copyright 2022 Christoph Kappel <christoph@unexist.dev>
