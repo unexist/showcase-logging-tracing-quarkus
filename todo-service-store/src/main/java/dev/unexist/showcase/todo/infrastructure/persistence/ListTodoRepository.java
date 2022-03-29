@@ -13,8 +13,6 @@ package dev.unexist.showcase.todo.infrastructure.persistence;
 
 import dev.unexist.showcase.todo.domain.todo.Todo;
 import dev.unexist.showcase.todo.domain.todo.TodoRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
@@ -26,8 +24,6 @@ import static java.util.stream.Collectors.toList;
 
 @ApplicationScoped
 public class ListTodoRepository implements TodoRepository {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ListTodoRepository.class);
-
     private List<Todo> list;
 
     /**
