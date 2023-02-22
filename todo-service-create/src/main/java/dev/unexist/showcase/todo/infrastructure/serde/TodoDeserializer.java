@@ -2,7 +2,7 @@
  * @package Showcase-Logging-Tracing-Quarkus
  *
  * @file Todo deserializer
- * @copyright 2022 Christoph Kappel <christoph@unexist.dev>
+ * @copyright 2022-present Christoph Kappel <christoph@unexist.dev>
  * @version $Id$
  *
  * This program can be distributed under the terms of the Apache License v2.0.
