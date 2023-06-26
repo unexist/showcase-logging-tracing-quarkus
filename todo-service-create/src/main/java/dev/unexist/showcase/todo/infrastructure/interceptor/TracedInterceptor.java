@@ -15,9 +15,9 @@ import io.opentelemetry.api.trace.Span;
 import io.quarkus.arc.Priority;
 import org.slf4j.MDC;
 
-import javax.interceptor.AroundInvoke;
-import javax.interceptor.Interceptor;
-import javax.interceptor.InvocationContext;
+import jakarta.interceptor.AroundInvoke;
+import jakarta.interceptor.Interceptor;
+import jakarta.interceptor.InvocationContext;
 
 @Traced
 @Priority(10)
