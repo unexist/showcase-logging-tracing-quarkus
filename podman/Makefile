@@ -65,10 +65,10 @@ pd-pod-rm:
 pd-pod-recreate: pd-pod-rm pd-pod-create
 
 pd-collector-build:
-	@podman build --format docker -t custom-collector -f podman/collector/Dockerfile
+	@podman build --format docker -t custom-collector -f collector/Dockerfile
 
 pd-fluentd-build:
-	@podman build --format docker -t custom-fluentd -f podman/fluentd/Dockerfile
+	@podman build --format docker -t custom-fluentd -f fluentd/Dockerfile
 
 pd-images-build: pd-collector-build pd-fluentd-build
 
