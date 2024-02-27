@@ -98,7 +98,7 @@ pd-collector:
 #    - "14250"
 
 pd-jaeger:
-	@podman run -dit --name jaeger --pod=$(PODNAME) jaegertracing/all-in-one:latest
+	@podman run -dit --name jaeger --pod=$(PODNAME) jaegertracing/all-in-one:1.24.0
 
 # Install Elastic
 #elasticsearch:
