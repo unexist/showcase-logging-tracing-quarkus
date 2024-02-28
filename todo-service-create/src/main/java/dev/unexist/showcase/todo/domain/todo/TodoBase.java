@@ -157,4 +157,10 @@ public class TodoBase {
             this.done = dueDate.getStart().isBefore(dueDate.getDue());
         }
     }
+
+    @Override
+    public String toString() {
+        return String.format("TodoBase{title=%s, description=%s, done=%s}",
+                title, description, done);
+    }
 }

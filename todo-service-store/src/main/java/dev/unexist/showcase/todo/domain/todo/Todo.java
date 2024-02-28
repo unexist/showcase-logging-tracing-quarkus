@@ -11,10 +11,6 @@
 
 package dev.unexist.showcase.todo.domain.todo;
 
-import com.tersesystems.echopraxia.api.PresentationField;
-import com.tersesystems.echopraxia.api.PresentationFieldBuilder;
-import com.tersesystems.echopraxia.api.Value;
-
 public class Todo extends TodoBase {
     private String id;
 
@@ -72,25 +68,8 @@ public class Todo extends TodoBase {
         this.id = id;
     }
 
-    public interface FieldBuilder extends PresentationFieldBuilder {
-        FieldBuilder INSTANCE = new FieldBuilder() {};
-
-        /**
-         * Field builder for {@link Todo}
-         *
-         * @param  name  Name of the log key
-         * @param  todo  A {@link Todo} entry to log
-         *
-         * @return Logging {@link PresentationField}
-         **/
-
-        default PresentationField todo(String name, Todo todo) {
-            return object(
-                    name,
-                    value("id", Value.string(todo.getId())),
-                    value("title", Value.string(todo.getTitle())),
-                    value("description", Value.string(todo.getDescription()))
-            );
-        }
+    @Override
+    public String toString() {
+        return String.format("Todo{id=%s}", id);
     }
 }
