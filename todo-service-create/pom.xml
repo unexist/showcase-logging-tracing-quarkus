@@ -14,6 +14,9 @@
     </parent>
 
     <properties>
+        <logback-classic.version>1.2.12</logback-classic.version>
+        <logstash-logback-encoder.version>7.3</logstash-logback-encoder.version>
+        <echopraxia.version>3.1.2</echopraxia.version>
         <awaitility.version>4.1.1</awaitility.version>
         <quarkus-logging-json.version>1.1.1</quarkus-logging-json.version>
     </properties>
@@ -26,7 +29,7 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-opentelemetry-exporter-otlp</artifactId>
+            <artifactId>quarkus-opentelemetry</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -37,10 +40,17 @@
             <artifactId>quarkus-logging-json</artifactId>
             <version>${quarkus-logging-json.version}</version>
         </dependency>-->
+
+        <!-- Logback -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback-classic.version}</version>
+        </dependency>
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>7.0.1</version>
+            <version>${logstash-logback-encoder.version}</version>
         </dependency>
 
         <!-- Tools -->
@@ -48,6 +58,18 @@
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
             <version>${awaitility.version}</version>
+        </dependency>
+
+        <!-- Echopraxia -->
+        <dependency>
+            <groupId>com.tersesystems.echopraxia</groupId>
+            <artifactId>logger</artifactId>
+            <version>${echopraxia.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tersesystems.echopraxia</groupId>
+            <artifactId>logstash</artifactId>
+            <version>${echopraxia.version}</version>
         </dependency>
 
         <!-- Opentelemetry -->
