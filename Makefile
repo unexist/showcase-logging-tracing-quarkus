@@ -44,13 +44,13 @@ open-jaeger:
 
 # Quarkus
 service-create:
-	mvn -f todo-service-create/pom.xml quarkus:dev -P log-echopraxia,!log-sl4j
+	mvn -f todo-service-create/pom.xml quarkus:dev
 
 service-verify:
-	mvn -f todo-service-verify/pom.xml quarkus:dev -P log-echopraxia,!log-sl4j
+	mvn -f todo-service-verify/pom.xml quarkus:dev
 
 service-store:
-	mvn -f todo-service-store/pom.xml quarkus:dev -P log-echopraxia,!log-sl4j
+	mvn -f todo-service-store/pom.xml quarkus:dev
 
 services: service-create service-verify service-store
 
