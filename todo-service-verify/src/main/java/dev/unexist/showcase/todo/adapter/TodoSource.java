@@ -11,8 +11,6 @@
 
 package dev.unexist.showcase.todo.adapter;
 
-import com.tersesystems.echopraxia.Logger;
-import com.tersesystems.echopraxia.LoggerFactory;
 import dev.unexist.showcase.todo.domain.todo.Todo;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
@@ -23,14 +21,15 @@ import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Message;
 import org.eclipse.microprofile.reactive.messaging.Metadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class TodoSource {
-    private static final Logger<Todo.FieldBuilder> LOGGER =
-            LoggerFactory.getLogger(TodoSource.class, Todo.FieldBuilder.INSTANCE);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TodoSource.class);
 
     @Inject
     @Channel("todo-verified")
@@ -44,8 +43,7 @@ public class TodoSource {
 
     @WithSpan("Sent message to todo-verified")
     public void send(Todo todo) {
-        LOGGER.info("Sent message to todo-verified: {}",
-                fb -> fb.todo("todo", todo));
+        LOGGER.info("Sent message to todo-verified: {}", todo);
 
         Message<Todo> outMessage = Message.of(todo)
                 .withMetadata(Metadata.of(

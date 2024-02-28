@@ -11,13 +11,13 @@
 
 package dev.unexist.showcase.todo.domain.todo;
 
-import com.tersesystems.echopraxia.Logger;
-import com.tersesystems.echopraxia.LoggerFactory;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.extension.annotations.WithSpan;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -30,8 +30,7 @@ import static org.awaitility.Awaitility.await;
 
 @ApplicationScoped
 public class TodoService {
-    private static final Logger<Todo.FieldBuilder> LOGGER =
-            LoggerFactory.getLogger(TodoService.class, Todo.FieldBuilder.INSTANCE);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TodoService.class);
 
     private static final List<String> BADWORDS = List.of("badword");
 
@@ -54,9 +53,7 @@ public class TodoService {
                         .anyMatch(part -> BADWORDS.stream()
                                 .anyMatch(part::contains));
 
-        LOGGER.info("Verified todo: {}, {}", fb -> fb.list(
-                fb.todo("todo", todo),
-                fb.bool("invalid", invalid)));
+        LOGGER.info("Verified todo: {}, {}", todo, invalid);
 
         Span.current()
                 .addEvent("Verified todo", Attributes.of(
@@ -82,8 +79,7 @@ public class TodoService {
         boolean ret = false;
 
         if (this.todoRepository.update(todo)) {
-            LOGGER.info("Updated todo: {}",
-                    fb -> fb.todo("todo", todo));
+            LOGGER.info("Updated todo: {}", todo);
 
             Span.current()
                     .addEvent("Updated todo", Attributes.of(
@@ -92,8 +88,7 @@ public class TodoService {
 
             ret = true;
         } else {
-            LOGGER.error("Cannot update todo: {}", fb ->
-                            fb.todo("todo", todo));
+            LOGGER.error("Cannot update todo: {}", todo);
 
             Span.current()
                     .setStatus(StatusCode.ERROR, "Cannot update todo");
