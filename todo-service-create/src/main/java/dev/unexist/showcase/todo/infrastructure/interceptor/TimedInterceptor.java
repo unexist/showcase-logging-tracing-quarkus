@@ -11,13 +11,14 @@
 
 package dev.unexist.showcase.todo.infrastructure.interceptor;
 
-import io.quarkus.arc.Priority;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.annotation.Priority;
 import jakarta.interceptor.AroundInvoke;
 import jakarta.interceptor.Interceptor;
 import jakarta.interceptor.InvocationContext;
+import java.util.concurrent.TimeUnit;
 
 @Timed
 @Priority(10)
@@ -34,7 +35,7 @@ public class TimedInterceptor {
         long end = System.nanoTime() - start;
 
         LOGGER.info("Execution of {}.{} took {}ms", context.getTarget().getClass().getSimpleName(),
-                context.getMethod().getName(), (end / 1000));
+                context.getMethod().getName(), TimeUnit.MILLISECONDS.toMillis(end));
 
         return result;
     }
