@@ -30,8 +30,8 @@ import static org.awaitility.Awaitility.await;
 
 @ApplicationScoped
 public class TodoService {
-    private static final Logger<Todo.FieldBuilder> LOGGER = LoggerFactory.getLogger(TodoService.class)
-            .withFieldBuilder(Todo.FieldBuilder.class);
+    private static final Logger<Todo.FieldBuilder> LOGGER =
+            LoggerFactory.getLogger(TodoService.class, Todo.FieldBuilder.INSTANCE);
 
     private static final List<String> BADWORDS = List.of("badword");
 
@@ -54,9 +54,9 @@ public class TodoService {
                         .anyMatch(part -> BADWORDS.stream()
                                 .anyMatch(part::contains));
 
-        LOGGER.info("Verified todo: {}, {}",
-                fb -> List.of(fb.todo("todo", todo),
-                        fb.bool("invalid", invalid)));
+        LOGGER.info("Verified todo: {}, {}", fb -> fb.list(
+                fb.todo("todo", todo),
+                fb.bool("invalid", invalid)));
 
         Span.current()
                 .addEvent("Verified todo", Attributes.of(
@@ -83,7 +83,7 @@ public class TodoService {
 
         if (this.todoRepository.update(todo)) {
             LOGGER.info("Updated todo: {}",
-                    fb -> fb.onlyTodo("todo", todo));
+                    fb -> fb.todo("todo", todo));
 
             Span.current()
                     .addEvent("Updated todo", Attributes.of(
@@ -92,8 +92,8 @@ public class TodoService {
 
             ret = true;
         } else {
-            LOGGER.error("Cannot update todo: {}",
-                    fb -> List.of(fb.todo("todo", todo)));
+            LOGGER.error("Cannot update todo: {}", fb ->
+                            fb.todo("todo", todo));
 
             Span.current()
                     .setStatus(StatusCode.ERROR, "Cannot update todo");

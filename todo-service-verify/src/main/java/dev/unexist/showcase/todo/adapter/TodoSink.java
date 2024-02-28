@@ -31,8 +31,8 @@ import java.util.concurrent.CompletionStage;
 
 @ApplicationScoped
 public class TodoSink {
-    private static final Logger<Todo.FieldBuilder> LOGGER = LoggerFactory.getLogger(TodoSink.class)
-            .withFieldBuilder(Todo.FieldBuilder.class);
+    private static final Logger<Todo.FieldBuilder> LOGGER =
+            LoggerFactory.getLogger(TodoSink.class, Todo.FieldBuilder.INSTANCE);
 
     @ConfigProperty(name = "quarkus.application.name")
     String appName;
@@ -46,7 +46,7 @@ public class TodoSink {
     @Incoming("todo-created")
     public CompletionStage<Void> consumeCreated(IncomingKafkaRecord<String, Todo> record) {
         LOGGER.info("Received message from todo-created: {}",
-                fb -> fb.onlyTodo("payload", record.getPayload()));
+                fb -> fb.todo("payload", record.getPayload()));
 
         Optional<TracingMetadata> metadata = TracingMetadata.fromMessage(record);
 
@@ -72,7 +72,7 @@ public class TodoSink {
     @Incoming("todo-stored")
     public CompletionStage<Void> consumeStored(IncomingKafkaRecord<String, Todo> record) {
         LOGGER.info("Received message from todo-stored: {}",
-                fb -> fb.onlyTodo("payload", record.getPayload()));
+                fb -> fb.todo("payload", record.getPayload()));
 
         Optional<TracingMetadata> metadata = TracingMetadata.fromMessage(record);
 

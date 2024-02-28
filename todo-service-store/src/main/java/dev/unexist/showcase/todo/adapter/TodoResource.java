@@ -35,8 +35,8 @@ import java.util.Optional;
 
 @Path("/todo")
 public class TodoResource {
-    private static final Logger<Todo.FieldBuilder> LOGGER = LoggerFactory.getLogger(TodoResource.class)
-            .withFieldBuilder(Todo.FieldBuilder.class);
+    private static final Logger<Todo.FieldBuilder> LOGGER =
+            LoggerFactory.getLogger(TodoResource.class, Todo.FieldBuilder.INSTANCE);
 
     @Inject
     TodoService todoService;

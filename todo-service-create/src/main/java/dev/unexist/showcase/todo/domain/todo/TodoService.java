@@ -29,8 +29,8 @@ import static org.awaitility.Awaitility.await;
 
 @ApplicationScoped
 public class TodoService {
-    private static final Logger<Todo.FieldBuilder> LOGGER = LoggerFactory.getLogger(TodoService.class)
-            .withFieldBuilder(Todo.FieldBuilder.class);
+    private static final Logger<Todo.FieldBuilder> LOGGER =
+            LoggerFactory.getLogger(TodoService.class, Todo.FieldBuilder.INSTANCE);
 
     @Inject
     TodoRepository todoRepository;
@@ -52,7 +52,7 @@ public class TodoService {
         await().between(Duration.ofSeconds(1), Duration.ofSeconds(10));
 
         LOGGER.info("Added id to todo: {}",
-                fb -> fb.onlyTodo("todo", todo));
+                fb -> fb.todo("todo", todo));
 
         Span.current()
                 .addEvent("Added id to todo", Attributes.of(
@@ -76,7 +76,7 @@ public class TodoService {
 
         if (this.todoRepository.update(todo)) {
             LOGGER.info("Updated todo: {}",
-                    fb -> fb.onlyTodo("todo", todo));
+                    fb -> fb.todo("todo", todo));
 
             Span.current()
                     .addEvent("Updated todo", Attributes.of(
@@ -86,7 +86,7 @@ public class TodoService {
             ret = true;
         } else {
             LOGGER.error("Cannot update todo: {}",
-                    fb -> fb.onlyTodo("todo", todo));
+                    fb -> fb.todo("todo", todo));
 
             Span.current()
                     .setStatus(StatusCode.ERROR, "Cannot update todo");

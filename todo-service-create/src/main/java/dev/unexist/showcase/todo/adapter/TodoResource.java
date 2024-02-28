@@ -40,13 +40,12 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.List;
 import java.util.Optional;
 
 @Path("/todo")
 public class TodoResource {
-    private static final Logger<Todo.FieldBuilder> LOGGER = LoggerFactory.getLogger(TodoResource.class)
-            .withFieldBuilder(Todo.FieldBuilder.class);
+    private static final Logger<Todo.FieldBuilder> LOGGER =
+            LoggerFactory.getLogger(TodoResource.class, Todo.FieldBuilder.INSTANCE);
 
     @Inject
     TodoService todoService;
@@ -83,7 +82,7 @@ public class TodoResource {
             this.todoSource.send(todo.get());
 
             LOGGER.info("Created todo: {}",
-                    fb -> List.of(fb.todo("todo", todo.get())));
+                    fb -> fb.todo("todo", todo.get()));
 
             URI uri = uriInfo.getAbsolutePathBuilder()
                     .path(todo.get().getId())

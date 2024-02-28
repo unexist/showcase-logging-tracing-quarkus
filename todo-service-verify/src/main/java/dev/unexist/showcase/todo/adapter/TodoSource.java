@@ -26,12 +26,11 @@ import org.eclipse.microprofile.reactive.messaging.Metadata;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.util.List;
 
 @ApplicationScoped
 public class TodoSource {
-    private static final Logger<Todo.FieldBuilder> LOGGER = LoggerFactory.getLogger(TodoSource.class)
-            .withFieldBuilder(Todo.FieldBuilder.class);
+    private static final Logger<Todo.FieldBuilder> LOGGER =
+            LoggerFactory.getLogger(TodoSource.class, Todo.FieldBuilder.INSTANCE);
 
     @Inject
     @Channel("todo-verified")
@@ -46,7 +45,7 @@ public class TodoSource {
     @WithSpan("Sent message to todo-verified")
     public void send(Todo todo) {
         LOGGER.info("Sent message to todo-verified: {}",
-                fb -> List.of(fb.todo("todo", todo)));
+                fb -> fb.todo("todo", todo));
 
         Message<Todo> outMessage = Message.of(todo)
                 .withMetadata(Metadata.of(

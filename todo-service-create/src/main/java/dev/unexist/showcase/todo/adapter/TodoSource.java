@@ -29,8 +29,8 @@ import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class TodoSource {
-    private static final Logger<Todo.FieldBuilder> LOGGER = LoggerFactory.getLogger(TodoSource.class)
-            .withFieldBuilder(Todo.FieldBuilder.class);
+    private static final Logger<Todo.FieldBuilder> LOGGER =
+            LoggerFactory.getLogger(TodoSource.class, Todo.FieldBuilder.INSTANCE);
 
     @Inject
     @Channel("todo-created")
@@ -45,7 +45,7 @@ public class TodoSource {
     @WithSpan("Sent message to todo-created")
     public void send(Todo todo) {
         LOGGER.info("Sent message to todo-created: {}",
-                fb -> fb.onlyTodo("todo", todo));
+                fb -> fb.todo("todo", todo));
 
         Message<Todo> outMessage = Message.of(todo)
                 .withMetadata(Metadata.of(
