@@ -12,9 +12,9 @@
 package dev.unexist.showcase.todo.infrastructure.interceptor;
 
 import io.opentelemetry.api.trace.Span;
-import io.quarkus.arc.Priority;
 import org.slf4j.MDC;
 
+import jakarta.annotation.Priority;
 import jakarta.interceptor.AroundInvoke;
 import jakarta.interceptor.Interceptor;
 import jakarta.interceptor.InvocationContext;
@@ -29,8 +29,7 @@ public class TracedInterceptor {
         Object result = null;
 
         try (MDC.MDCCloseable closable = MDC.putCloseable("trace_id",
-                Span.current().getSpanContext().getTraceId()))
-        {
+                Span.current().getSpanContext().getTraceId())) {
             result = context.proceed();
         }
 
