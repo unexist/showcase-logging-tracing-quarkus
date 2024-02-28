@@ -14,9 +14,8 @@
     </parent>
 
     <properties>
-        <logback-classic.version>1.2.12</logback-classic.version>
-        <logstash-logback-encoder.version>7.3</logstash-logback-encoder.version>
-        <echopraxia.version>3.1.2</echopraxia.version>
+        <logback-classic.version>1.4.6</logback-classic.version>
+        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <awaitility.version>4.1.1</awaitility.version>
         <quarkus-logging-json.version>1.1.1</quarkus-logging-json.version>
     </properties>
@@ -58,18 +57,6 @@
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
             <version>${awaitility.version}</version>
-        </dependency>
-
-        <!-- Echopraxia -->
-        <dependency>
-            <groupId>com.tersesystems.echopraxia</groupId>
-            <artifactId>logger</artifactId>
-            <version>${echopraxia.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.tersesystems.echopraxia</groupId>
-            <artifactId>logstash</artifactId>
-            <version>${echopraxia.version}</version>
         </dependency>
 
         <!-- Opentelemetry -->
