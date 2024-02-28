@@ -40,7 +40,7 @@ open-elastic:
 	open http://localhost:9200
 
 open-jaeger:
-	open http://localhost:16686/
+	open http://localhost:16686
 
 # Quarkus
 service-create:
