@@ -1,5 +1,7 @@
 FROM fluent/fluentd:v1.14-debian-1
 
+MAINTAINER Christoph Kappel <christoph@unexist.dev>
+
 USER root
 
 COPY ./fluent.conf /fluentd/etc/fluent.conf
